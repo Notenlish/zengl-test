@@ -26,7 +26,7 @@ def surf_to_tex(surface: pygame.Surface, ctx: zengl.Context):
 pygame.init()
 
 vert_shader = read_file("vertex_shader.vert")
-frag_shader = read_file("underwater2.frag")
+frag_shader = read_file("underwater3.frag")
 
 
 class App:
@@ -93,7 +93,6 @@ class App:
             self.dt = self.clock.tick(60) / 1000
             self.fps = self.clock.get_fps()
             self.time_elapsed += self.dt
-            print(self.fps, self.dt)
 
             pygame.display.flip()
             await asyncio.sleep(0)

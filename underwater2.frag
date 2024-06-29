@@ -1,4 +1,4 @@
-#version 330 core
+#version 300 es
 precision highp float;
 
 uniform sampler2D Texture;
@@ -86,8 +86,8 @@ void main() {
 	//vec2 coord = gl_TexCoord[0].st;
 	//gl_FragColor = transformColor(texture2D(Texture, coord), coord);
 	
-    // gl_FragColor = vec4(1,1,1,1), vec2(0,0);
-    gl_FragColor = texture2D(Texture, coord), coord;
-    // vec4 finalColor = texColor.bgra;
-    
+    // gl_FragColor = vec4(1,1,1,1), vec2(0,0);  // this doesnt work
+    vec4 result = texture2D(Texture, coord);  // this works
+    gl_FragColor = result.bgra;  // pygame uses a different format for colors thats why we do this.
+	// vec4 finalColor = texColor.bgra;
 }
