@@ -86,8 +86,8 @@ void main() {
 	//vec2 coord = gl_TexCoord[0].st;
 	//gl_FragColor = transformColor(texture2D(Texture, coord), coord);
 	
-    gl_FragColor = vec4(1,1,1,1), vec2(0,0);
-    // gl_FragColor = texture2D(Texture, coord), coord;
+    // gl_FragColor = vec4(1,1,1,1), vec2(0,0);
+    gl_FragColor = texture2D(Texture, coord), coord;
     // vec4 finalColor = texColor.bgra;
     
 }
