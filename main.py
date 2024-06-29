@@ -13,16 +13,6 @@ def read_file(filename):
     return data
 
 
-def surf_to_tex(surface: pygame.Surface, ctx: zengl.Context):
-    # 1 = NEAREST(for pixel art)
-    tex = ctx.image(
-        surface.get_size(), format="rgba8unorm", data=surface.get_view("1"), samples=1
-    )
-    tex.filter = (zengl.NEAREST, zengl.NEAREST)
-    tex.write(surface.get_view("1"))
-    return tex
-
-
 pygame.init()
 
 vert_shader = read_file("vertex_shader.vert")

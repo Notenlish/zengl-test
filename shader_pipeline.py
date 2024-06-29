@@ -44,6 +44,7 @@ class ShaderPipeline:
                 "dst_color": "one_minus_src_alpha",
             },
         )
+        
 
     def get_resources_and_layout(self):
         layout = [{"name": "Common", "binding": 0}]

@@ -58,21 +58,21 @@ vec4 transformColor(vec4 c, vec2 p) {
 void main() {
     WaveEmitter emit0;
     emit0.mPosition = vec2(0.1, 0.7);
-    emit0.mAmplitude = 0.005;
+    emit0.mAmplitude = 0.012;
     emit0.mVelocity = 0.06;
     emit0.mWavelength = 0.7;
     emitter[0] = emit0;
 
     WaveEmitter emit1;
     emit1.mPosition = vec2(0.8, -0.1);
-    emit1.mAmplitude = 0.005;
+    emit1.mAmplitude = 0.006;
     emit1.mVelocity = 0.07;
-    emit1.mWavelength = 0.6;
+    emit1.mWavelength = 0.3;
     emitter[1] = emit1;
 
     WaveEmitter emit2;
     emit2.mPosition = vec2(1.1, 0.9);
-    emit2.mAmplitude = 0.005;
+    emit2.mAmplitude = 0.017;
     emit2.mVelocity = 0.05;
     emit2.mWavelength = 0.8;
     emitter[2] = emit2;
