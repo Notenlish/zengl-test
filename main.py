@@ -15,14 +15,11 @@ def read_file(filename):
 
 pygame.init()
 
-vert_shader = read_file("vertex_shader.vert")
-frag_shader = read_file("underwater3.frag")
-
 
 class App:
     def __init__(self) -> None:
         self.screen_size = (960, 540)
-        self.using_gpu = False
+        self.using_gpu = True
         self.max_fps = 60
 
         self.pg_surf = self.init_screen()
@@ -33,18 +30,23 @@ class App:
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
         if self.using_gpu:
-            self.ctx = zengl.context()
+            self.setup_gpu()
 
-            uniforms_map = {
-                "time": {
-                    "value": lambda: struct.pack("f", self.time_elapsed),
-                    "glsl_type": "float",
-                }
+    def setup_gpu(self):
+        self.ctx = zengl.context()
+        self.uniforms_map = {
+            "time": {
+                "value": lambda: struct.pack("f", self.time_elapsed),
+                "glsl_type": "float",
             }
-
-            self.screen_shader = ShaderPipeline(
-                self, uniforms_map, vert_shader, frag_shader
-            )
+        }
+        
+        self.screen_shader = ShaderPipeline(
+            self,
+            self.uniforms_map,
+            vert_shader=read_file("vertex_shader.vert"),
+            frag_shader=read_file("underwater3.frag"),
+        )
 
     def init_screen(self):
         if self.using_gpu:
