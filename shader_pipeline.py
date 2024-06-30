@@ -18,12 +18,12 @@ class ShaderPipeline:
         uniforms_map: dict = {},
         vert_shader_path: str = "default",
         frag_shader_path: str = "default",
-        has_tex: bool = True,
+        textures: dict[str, dict[str, any]] = {},
     ):
         self.app = app
         self.ctx = self.app.ctx
-        self.has_tex = has_tex
-        self.image = self.ctx.image(self.app.screen_size, "rgba8unorm")
+        self.textures = textures
+        self.setup_images()
         self.uniforms, self.ufs_size, self.ufs_includes = self.pack_uniforms(
             uniforms_map
         )
@@ -32,12 +32,20 @@ class ShaderPipeline:
         self.frag_shader_path = frag_shader_path
         self.construct_pipeline()
 
+    def setup_images(self):
+        self.images = {}
+        for tex_name, obj in self.textures.items():
+            self.images[tex_name] = self.ctx.image(obj["size"], "rgba8unorm", samples=1)
+
     def construct_pipeline(self):
         layout, resources = self.get_resources_and_layout()
         vec2_screen_size_str = (
             f"vec2({self.app.screen_size[0]}.0, {self.app.screen_size[1]}.0)"
         )
         constants = {"constants": f"const vec2 iResolution = {vec2_screen_size_str};"}
+
+        print(layout)
+        print(resources)
 
         self.pipeline = self.ctx.pipeline(
             includes=constants | self.ufs_includes,
@@ -65,26 +73,30 @@ class ShaderPipeline:
         resources = [
             {"type": "uniform_buffer", "binding": 0, "buffer": self.uniform_buffer}
         ]
-        if self.has_tex:
-            layout.append({"name": "Texture", "binding": 0})
+        i = 0
+        for tex_name, obj in self.textures.items():
+            layout.append({"name": tex_name, "binding": i})
             resources.append(
                 {
                     "type": "sampler",
-                    "binding": 0,
-                    "image": self.image,
+                    "binding": i,
+                    "image": self.images[tex_name],
                     "min_filter": "nearest",
                     "mag_filter": "nearest",
                     "wrap_x": "clamp_to_edge",
                     "wrap_y": "clamp_to_edge",
                 }
             )
+            i += 1
         return layout, resources
 
-    def render(self, screen: "pygame.Surface | None" = None):
+    def render(self, surfaces: dict[str:"pygame.Surface"]):
         self.update_uniforms()
-        if screen:
-            screen_buffer = screen.get_view("0").raw
-            self.image.write(screen_buffer)
+
+        for tex_name, surf in surfaces.items():
+            screen_buffer = surf.get_view("0").raw
+            self.images[tex_name].write(screen_buffer)
+        
         self.pipeline.render()
 
     def update_uniforms(self):

@@ -2,6 +2,7 @@
 precision highp float;
 
 uniform sampler2D Texture;  // pygame surface passed to the gpu.
+uniform sampler2D planetTexture;
 
 #include "uniforms"
 
@@ -29,10 +30,6 @@ void main() {
 
     float dis = distance(vec2(screenResolution * 0.5), pos);
     if (dis <= bodyRadius) {
-        float z = getZSphere(bodyRadius, pos.x, pos.y);
-
-        //////////////////////
-        
         // Calculate 2D normalized coordinates
         vec2 uv = fragCoord;
 
@@ -51,8 +48,15 @@ void main() {
 
         // Example: Coloring based on the spherical coordinates
         // vec3 color = spherePosition * 0.5 + 0.5;  // Adjust to range [0,1]
-        vec3 color = vec3(spherePosition);
-        fragColor = vec4(color, 1.0);
+        // vec3 color = vec3(spherePosition);
+
+        // Convert spherical coordinates to Normal
+        vec2 uv_remap = pos - vec2(screenResolution * 0.5); // replace vec2(screenResolution * 0.5) with pos in future
+        vec3 normal = vec3(uv_remap.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
+
+        vec2 texture_uv = vec2(0.5, 0.5);
+
+        fragColor = vec4(texture(planetTexture, texture_uv).bgr, 1.0);
     } else {
         fragColor = texture(Texture, fragCoord).bgra;
     }

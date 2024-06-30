@@ -8,6 +8,7 @@ import os
 
 from shader_pipeline import ShaderPipeline
 
+
 class App:
     def __init__(self) -> None:
         pygame.init()
@@ -56,11 +57,24 @@ class App:
             },
         }
 
+        planet_texture = pygame.image.load("earth.png").convert_alpha()
+
         self.screen_shader = ShaderPipeline(
             self,
             self.uniforms_map,
             vert_shader_path=self.shaders["vert"],
             frag_shader_path=self.shaders["frag"],
+            textures={
+                "Texture": {
+                    "dynamic": True,
+                    "size": self.screen_size,
+                },  # pg_surf will go here
+                "planetTexture": {
+                    "dynamic": False,
+                    "img": planet_texture,
+                    "size": planet_texture.get_size(),
+                },
+            },
         )
 
     def init_screen(self):
@@ -105,7 +119,7 @@ class App:
         if self.using_gpu:
             # zengl
             self.ctx.new_frame()
-            self.screen_shader.render(self.pg_surf)
+            self.screen_shader.render({"Texture": self.pg_surf})
             self.ctx.end_frame()
 
     def pg_draw(self):
