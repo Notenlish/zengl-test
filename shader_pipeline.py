@@ -99,8 +99,11 @@ class ShaderPipeline:
             elif uf_data["glsl_type"] == "mat4":
                 size = 64  # 4x4 floats
                 align = 16  # aligned as vec4 in std140 layout
+            elif uf_data["glsl_type"] == "ivec2":
+                size = 8  # 2 i32
+                align = 8
             else:
-                raise ValueError(f"Unknown GLSL type: {uf_data['glsl_type']}")
+                raise ValueError(f"Either unknown GLSL type: {uf_data['glsl_type']} or not Implemented")
 
             # Add padding for alignment
             if offset % align != 0:

@@ -18,7 +18,7 @@ pygame.init()
 
 class App:
     def __init__(self) -> None:
-        self.screen_size = (960, 540)
+        self.screen_size = (1280, 720)
         self.using_gpu = True
         self.max_fps = 60
 
@@ -38,14 +38,24 @@ class App:
             "time": {
                 "value": lambda: struct.pack("f", self.time_elapsed),
                 "glsl_type": "float",
-            }
+            },
+            "bodyRadius": {
+                "value": lambda: struct.pack("f", self.bodyRadius),
+                "glsl_type": "float",
+            },
+            "test": {
+                "value": lambda: struct.pack(
+                    "f2", [float(self.screen_size[0]), float(self.screen_size[1])]
+                ),
+                "glsl_type": "vec2",
+            },
         }
-        
+
         self.screen_shader = ShaderPipeline(
             self,
             self.uniforms_map,
             vert_shader=read_file("vertex_shader.vert"),
-            frag_shader=read_file("underwater3.frag"),
+            frag_shader=read_file("planet.frag"),
         )
 
     def init_screen(self):
