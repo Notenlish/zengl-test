@@ -36,6 +36,9 @@ class ShaderPipeline:
         self.images = {}
         for tex_name, obj in self.textures.items():
             self.images[tex_name] = self.ctx.image(obj["size"], "rgba8unorm", samples=1)
+            if obj.get("img"):  # if img is provided already
+                screen_buffer = obj["img"].get_view("0").raw
+                self.images[tex_name].write(screen_buffer)
 
     def construct_pipeline(self):
         layout, resources = self.get_resources_and_layout()

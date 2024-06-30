@@ -25,7 +25,7 @@ class App:
         self.time_elapsed = 0
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
-        self.shaders = {"vert": "default.vert", "frag": "planet.frag"}
+        self.shaders = {"vert": "default.vert", "frag": "planet2.frag"}
         self.since_shader_check = 0
 
         if self.using_gpu:
@@ -84,6 +84,7 @@ class App:
                 "flags": pygame.OPENGL | pygame.DOUBLEBUF,
                 "vsync": True,
             }
+            # pygame needs to use RGBA mode otherwise it wont work with opengl
             try:
                 return pygame.display.set_mode(**display_kwargs).convert_alpha()
             except:
@@ -119,14 +120,14 @@ class App:
         if self.using_gpu:
             # zengl
             self.ctx.new_frame()
-            self.screen_shader.render({"Texture": self.pg_surf,"planetTexture":self.planet_texture})
+            self.screen_shader.render({"Texture": self.pg_surf})
             self.ctx.end_frame()
 
     def pg_draw(self):
         self.pg_surf.fill("black")
         self.pg_surf.blit(self.screenshot, (100, 100))
 
-    async def run(self):
+    def run(self):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -145,4 +146,4 @@ class App:
             self.since_shader_check += self.dt
 
             pygame.display.flip()
-            await asyncio.sleep(0)
+            

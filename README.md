@@ -2,6 +2,10 @@
 
 Just a testing repository for zengl and learning to use it on the web.
 
+## NOTES
+
+Running this on zengl 2.4.0 or 2.5.0 with python <3.12 will eventually result in dealloc crash due to zengl, a temp fix was made but if you encounter an `Fatal Python error: none_dealloc` issue when using zengl, just switch to 3.12 or downgrade your version. More information can be found on the moderngl server(zengl is made by the same guy who has made moderngl)
+
 ## Pygbag(run on the web)
 
 install pygbag: `pip install pygbag`
@@ -14,6 +18,7 @@ Big thanks to `@dom0196` and `Szabolcs Dombi` from moderngl server for the help 
 ## Where did I get the shaders
 
 https://github.com/opatut/Shaders/blob/master/data/underwater.glsl -> underwater shader
+https://deep-fold.itch.io/pixel-planet-generator --> planet2 frag
 
 https://www.shadertoy.com/view/XtjcRd
 https://www.shadertoy.com/view/XttyRX

@@ -9,6 +9,8 @@ uniform sampler2D planetTexture;
 in vec2 fragCoord;
 out vec4 fragColor;
 
+float PI = 3.1415926535897932384626433832795;
+
 
 // sphere projection:
 // R being radius
@@ -30,6 +32,8 @@ void main() {
 
     float dis = distance(vec2(screenResolution * 0.5), pos);
     if (dis <= bodyRadius) {
+        
+        /*
         // Calculate 2D normalized coordinates
         vec2 uv = fragCoord;
 
@@ -43,6 +47,11 @@ void main() {
         spherePosition.y = cos(theta);
         spherePosition.z = getZSphere2(uv, dis);
 
+        // cos(phi) * cos(theta)  ==> lits up bottom part
+        // sin(theta)  ==> nearly everywhere is lit up
+        */
+
+        /*
         // Convert spherical coordinates to Normal
         vec2 uv_remap = pos - vec2(screenResolution * 0.5); // replace vec2(screenResolution * 0.5) with pos in future
         vec3 normal = vec3(uv_remap.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
@@ -63,15 +72,32 @@ void main() {
 
         // Now u and v are the 2D UV coordinates for the planet texture
         vec2 texture_uv = vec2(u, v);
+        */
+        
+        
+        
+        vec2 uv_remap = pos - vec2(screenResolution * 0.5); // replace vec2(screenResolution * 0.5) with pos in future
+        vec3 normal = vec3(uv_remap.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
 
+        // Normalize the normal vector
+        normal = normalize(normal);
+        
+        // Calculate spherical coordinates
+        float theta = acos(-normal.y);  // - to flip img
+        float phi = atan(normal.z, -normal.x);
 
-        // cos(phi) * cos(theta)  ==> lits up bottom part
-        // sin(theta)  ==> nearly everywhere is lit up
+        // Convert spherical coordinates to texture coordinates
+        float u = (phi + PI) / (2.0 * 3.141592653589793);
+        float v = theta / 3.141592653589793;
+
+        // Now u and v are the 2D UV coordinates for the planet texture
+        vec2 texture_uv = vec2(u, v);
+
+        fragColor = vec4(texture(planetTexture, texture_uv).bgr, 1.0);
 
         // Example: Coloring based on the spherical coordinates
         // vec3 color = spherePosition * 0.5 + 0.5;  // Adjust to range [0,1]
         // vec3 color = vec3(spherePosition);
-        fragColor = vec4(texture(planetTexture, texture_uv).bgr, 1.0);
     } else {
         fragColor = texture(Texture, fragCoord).bgra;
     }
