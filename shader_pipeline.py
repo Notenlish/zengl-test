@@ -5,13 +5,19 @@ if TYPE_CHECKING:
     import pygame
 
 
+def read_file(filename):
+    with open(filename, "r") as f:
+        data = f.read()
+    return data
+
+
 class ShaderPipeline:
     def __init__(
         self,
         app: "App",
         uniforms_map: dict = {},
-        vert_shader: str = "default",
-        frag_shader: str = "default",
+        vert_shader_path: str = "default",
+        frag_shader_path: str = "default",
         has_tex: bool = True,
     ):
         self.app = app
@@ -22,6 +28,11 @@ class ShaderPipeline:
             uniforms_map
         )
         self.uniform_buffer = self.ctx.buffer(size=self.ufs_size)
+        self.vert_shader_path = vert_shader_path
+        self.frag_shader_path = frag_shader_path
+        self.construct_pipeline()
+
+    def construct_pipeline(self):
         layout, resources = self.get_resources_and_layout()
         vec2_screen_size_str = (
             f"vec2({self.app.screen_size[0]}.0, {self.app.screen_size[1]}.0)"
@@ -30,8 +41,8 @@ class ShaderPipeline:
 
         self.pipeline = self.ctx.pipeline(
             includes=constants | self.ufs_includes,
-            vertex_shader=vert_shader,
-            fragment_shader=frag_shader,
+            vertex_shader=read_file(self.vert_shader_path),
+            fragment_shader=read_file(self.frag_shader_path),
             layout=layout,
             resources=resources,
             framebuffer=None,
@@ -44,7 +55,10 @@ class ShaderPipeline:
                 "dst_color": "one_minus_src_alpha",
             },
         )
-        
+
+    def reload_shaders(self):
+        print("reloading shaders!")
+        self.construct_pipeline()
 
     def get_resources_and_layout(self):
         layout = [{"name": "Common", "binding": 0}]
@@ -103,7 +117,9 @@ class ShaderPipeline:
                 size = 8  # 2 i32
                 align = 8
             else:
-                raise ValueError(f"Either unknown GLSL type: {uf_data['glsl_type']} or not Implemented")
+                raise ValueError(
+                    f"Either unknown GLSL type: {uf_data['glsl_type']} or not Implemented"
+                )
 
             # Add padding for alignment
             if offset % align != 0:

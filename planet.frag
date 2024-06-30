@@ -1,28 +1,59 @@
 #version 300 es
 precision highp float;
 
-uniform sampler2D Texture;
+uniform sampler2D Texture;  // pygame surface passed to the gpu.
 
 #include "uniforms"
 
 in vec2 fragCoord;
 out vec4 fragColor;
 
-// Custom Shader stuff
+
+// sphere projection:
+// R being radius
+// x^2 + y^2 + z^2 = R^2 
+
+
+float getZSphere(float rad, float x, float y) {
+    return sqrt(pow(rad, 2.0) - pow(x, 2.0) - pow(y, 2.0));
+}
+
+float getZSphere2(vec2 uv, float dis) {
+    vec3 result = vec3(uv.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
+    return result.z;
+}
+
 
 void main() {
-    // Calculate the coordinates of the fragment relative to the center of the screen
-    vec2 center = DDD * 0.5;
-    vec2 fragCoord = gl_FragCoord.xy;
-    vec2 position = (fragCoord - center) / DDD;
+    vec2 pos = fragCoord * screenResolution;
 
-    // Calculate the distance from the center of the screen
-    float distanceFromCenter = length(position);
+    float dis = distance(vec2(screenResolution * 0.5), pos);
+    if (dis <= bodyRadius) {
+        float z = getZSphere(bodyRadius, pos.x, pos.y);
 
-    // If the distance is less than the radius, draw the circle
-    if (distanceFromCenter < bodyRadius) {
-        fragColor = vec4(1.0, 1.0, 1.0, 1.0); // White color
+        //////////////////////
+        
+        // Calculate 2D normalized coordinates
+        vec2 uv = fragCoord;
+
+        // Convert 2D normalized coordinates (uv) to spherical coordinates
+        float phi = uv.x * 3.141592653589793 * 2.0;  // Azimuthal angle (0 to 2π)
+        float theta = uv.y * 3.141592653589793;      // Polar angle (0 to π)
+
+        // Convert spherical coordinates to 3D Cartesian coordinates
+        vec3 spherePosition;
+        spherePosition.x = -sin(phi);
+        spherePosition.y = cos(theta);
+        spherePosition.z = getZSphere2(uv, dis);
+
+        // cos(phi) * cos(theta)  ==> lits up bottom part
+        // sin(theta)  ==> nearly everywhere is lit up
+
+        // Example: Coloring based on the spherical coordinates
+        // vec3 color = spherePosition * 0.5 + 0.5;  // Adjust to range [0,1]
+        vec3 color = vec3(spherePosition);
+        fragColor = vec4(color, 1.0);
     } else {
-        fragColor = vec4(0.0, 0.0, 0.0, 0.0); // Transparent
+        fragColor = texture(Texture, fragCoord).bgra;
     }
 }
