@@ -57,7 +57,7 @@ class App:
             },
         }
 
-        planet_texture = pygame.image.load("earth.png").convert_alpha()
+        self.planet_texture = pygame.image.load("earth.png").convert_alpha()
 
         self.screen_shader = ShaderPipeline(
             self,
@@ -71,8 +71,8 @@ class App:
                 },  # pg_surf will go here
                 "planetTexture": {
                     "dynamic": False,
-                    "img": planet_texture,
-                    "size": planet_texture.get_size(),
+                    "img": self.planet_texture,
+                    "size": self.planet_texture.get_size(),
                 },
             },
         )
@@ -119,7 +119,7 @@ class App:
         if self.using_gpu:
             # zengl
             self.ctx.new_frame()
-            self.screen_shader.render({"Texture": self.pg_surf})
+            self.screen_shader.render({"Texture": self.pg_surf,"planetTexture":self.planet_texture})
             self.ctx.end_frame()
 
     def pg_draw(self):
