@@ -124,14 +124,13 @@ void main() {
                 col = colors[1];
             }
         }
-        
+        // procedural planet
         fragColor = vec4(col.r, col.g, col.b, a * col.a);
-        
-
     } else {
         fragColor = vec4(texture(Texture, fragCoord).bgra);
     }
     if (fragCoord.x > 1.0) {
         fragColor = texture(planetTexture, fragCoord).bgra;
+        // stop opengl from complaining
     }
 }

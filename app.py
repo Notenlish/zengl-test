@@ -7,10 +7,13 @@ import pygame
 import os
 
 from shader_pipeline import ShaderPipeline
+import importlib
 
 
 class App:
     def __init__(self) -> None:
+        self.mod = importlib.import_module("uniforms", "uniforms")
+        
         pygame.init()
         self.screen_size = (1280, 720)
         self.using_gpu = True
@@ -25,37 +28,28 @@ class App:
         self.time_elapsed = 0
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
-        self.shaders = {"vert": "default.vert", "frag": "planet2.frag"}
+        self.shaders = {"vert": "default.vert", "frag": "planet.frag"}
         self.since_shader_check = 0
 
         if self.using_gpu:
             self.setup_gpu()
+
+    def load_uniforms(self):
+        self.mod = importlib.reload(self.mod)
+        self.uniforms_map = self.mod.get_uniforms(self)
+    
+    def update_uniforms(self):
+        self.screen_shader.uniforms, _, _ = self.screen_shader.pack_uniforms(
+            self.uniforms_map
+        )
 
     def setup_gpu(self):
         self.ctx = zengl.context()
 
         # Note to self: if you dont use Texture in shader, glsl will complain,
         # but if you dont use these uniforms glsl wont complain
-        self.uniforms_map = {
-            "time": {
-                "value": lambda: struct.pack("f", self.time_elapsed),
-                "glsl_type": "float",
-            },
-            "bodyRadius": {
-                "value": lambda: struct.pack("f", self.bodyRadius),
-                "glsl_type": "float",
-            },
-            "screenResolution": {
-                "value": lambda: struct.pack(
-                    "ff", self.screen_size[0], self.screen_size[1]
-                ),
-                "glsl_type": "vec2",
-            },
-            "aspectRatio": {
-                "value": lambda: struct.pack("ff", 16, 9),
-                "glsl_type": "vec2",
-            },
-        }
+
+        self.load_uniforms()
 
         self.planet_texture = pygame.image.load("earth.png").convert_alpha()
 
@@ -98,6 +92,9 @@ class App:
 
     def check_shader_change(self):
         if self.since_shader_check > 1:  # check every second
+            self.load_uniforms()
+            self.update_uniforms()  # send to shader
+            
             self.since_shader_check = 0
             if not hasattr(self, "shader_history"):
                 self.shader_history = {
@@ -136,6 +133,8 @@ class App:
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F1:
                         self.screen_shader.reload_shaders()
+                        self.load_uniforms()
+                        self.update_uniforms()  # send to shader
 
             self.update()
             self.render()
@@ -146,4 +145,3 @@ class App:
             self.since_shader_check += self.dt
 
             pygame.display.flip()
-            

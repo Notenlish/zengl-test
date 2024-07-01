@@ -10,7 +10,8 @@ in vec2 fragCoord;
 out vec4 fragColor;
 
 float PI = 3.1415926535897932384626433832795;
-
+vec2 light_origin = vec2(0.7, 0.5);
+float pixels = 250.0;
 
 // sphere projection:
 // R being radius
@@ -32,7 +33,7 @@ void main() {
 
     float dis = distance(vec2(screenResolution * 0.5), pos);
     if (dis <= bodyRadius) {
-        
+        vec2 pixellized_uv = floor(fragCoord * pixels) / pixels;
         /*
         // Calculate 2D normalized coordinates
         vec2 uv = fragCoord;
@@ -92,8 +93,39 @@ void main() {
 
         // Now u and v are the 2D UV coordinates for the planet texture
         vec2 texture_uv = vec2(u, v);
+        // texture_uv.x += time;
+        // texture_uv.x = mod(texture_uv.x, 1.0);
 
-        fragColor = vec4(texture(planetTexture, texture_uv).bgr, 1.0);
+        /*
+        // calculate light dist
+        float d_light = distance(texture_uv, light_result);
+        vec3 col = texture(planetTexture, texture_uv).bgr;
+
+        if (d_light > 1.0) {
+            col -= vec3(0.3);
+        }
+        */
+
+
+        vec3 lightColor = vec3(1.0, 1.0, 1.0);
+
+        vec3 NotfragColor = vec4(texture(planetTexture, texture_uv).bgr, 1.0).rgb * lightColor; //lightColor is a uniform vec3
+        NotfragColor = NotfragColor * max(dot(normal, -normalize(lightDirection)), 0.01); //lightDirection is also a uniform
+        NotfragColor -= mod(NotfragColor, 0.1001); // floor to 0.1 w/out messin up center px
+        // fragColor = vec4(NotfragColor, 1); 
+
+
+        int grainSize = 128;
+
+        // grain
+        ivec2 pixelCoords = ivec2(pos.xy);
+        ivec2 pixelFloordiv = pixelCoords - (pixelCoords%(grainSize*2));
+        if ((pixelFloordiv.x < grainSize && pixelFloordiv.y < grainSize) || (pixelFloordiv.x > grainSize && pixelFloordiv.y > grainSize)) { // error here
+            NotfragColor.rgb += vec3(0.1);
+        }
+        NotfragColor = clamp(NotfragColor, 0.0, 1.0);
+
+        fragColor = vec4(NotfragColor, 1.0);
 
         // Example: Coloring based on the spherical coordinates
         // vec3 color = spherePosition * 0.5 + 0.5;  // Adjust to range [0,1]
