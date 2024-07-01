@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Dict
 
 if TYPE_CHECKING:
     from main import App
@@ -15,10 +15,10 @@ class ShaderPipeline:
     def __init__(
         self,
         app: "App",
-        uniforms_map: dict = {},
+        uniforms_map: Dict[any, any] = {},
         vert_shader_path: str = "default",
         frag_shader_path: str = "default",
-        textures: dict[str, dict[str, any]] = {},
+        textures: Dict[str, Dict[str, any]] = {},
     ):
         self.app = app
         self.ctx = self.app.ctx
@@ -90,7 +90,7 @@ class ShaderPipeline:
             i += 1
         return layout, resources
 
-    def render(self, surfaces: dict[str:"pygame.Surface"]):
+    def render(self, surfaces: Dict[str, any]):
         self.update_uniforms()
 
         for tex_name, surf in surfaces.items():
@@ -105,7 +105,7 @@ class ShaderPipeline:
                 self.uniform_buffer.write(uniform["value"](), offset=uniform["offset"])
 
     @staticmethod
-    def pack_uniforms(uniforms_map: dict) -> tuple[dict, int, dict]:
+    def pack_uniforms(uniforms_map: Dict[any, any]) -> tuple[Dict[any, any], int, Dict[any, any]]:
         uniforms = {}
         layout = ""
         offset = 0
