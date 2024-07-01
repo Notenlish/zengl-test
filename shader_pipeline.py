@@ -128,6 +128,9 @@ class ShaderPipeline:
             elif uf_data["glsl_type"] == "ivec2":
                 size = 8  # 2 i32
                 align = 8
+            elif uf_data["glsl_type"] == "vec3[32]":
+                size = 16 * 32  # 32 vec3 elements, each aligned to 16 bytes (vec4)
+                align = 16
             else:
                 raise ValueError(
                     f"Either unknown GLSL type: {uf_data['glsl_type']} or not Implemented"
