@@ -106,17 +106,24 @@ void main() {
         }
         */
 
+        // light pos modifications
+        float rot = 0.0 + time; // between 0 and 2pi
+        rot = mod(rot, 2.0 * PI);
+        vec2 light_pos_mod = vec2(sin(rot), cos(rot)) * vec2(2.0);
+
+        vec3 newlightDirection = vec3(0.3 + light_pos_mod.x, 0.3, -1.0 + light_pos_mod.y);
 
         vec3 lightColor = vec3(1.0, 1.0, 1.0);
 
         vec3 NotfragColor = vec4(texture(planetTexture, texture_uv).bgr, 1.0).rgb * lightColor; //lightColor is a uniform vec3
-        NotfragColor = NotfragColor * max(dot(normal, -normalize(lightDirection)), 0.01); //lightDirection is also a uniform
+        NotfragColor = NotfragColor * max(dot(normal, -normalize(newlightDirection)), 0.01); //lightDirection is also a uniform
         NotfragColor -= mod(NotfragColor, 0.1001); // floor to 0.1 w/out messin up center px
         // fragColor = vec4(NotfragColor, 1); 
 
 
         int grainSize = 128;
 
+        /*
         // grain
         ivec2 pixelCoords = ivec2(pos.xy);
         ivec2 pixelFloordiv = pixelCoords - (pixelCoords%(grainSize*2));
@@ -124,6 +131,7 @@ void main() {
             NotfragColor.rgb += vec3(0.1);
         }
         NotfragColor = clamp(NotfragColor, 0.0, 1.0);
+        */
 
         fragColor = vec4(NotfragColor, 1.0);
 

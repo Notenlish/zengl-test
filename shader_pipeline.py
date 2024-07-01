@@ -47,8 +47,13 @@ class ShaderPipeline:
         )
         constants = {"constants": f"const vec2 iResolution = {vec2_screen_size_str};"}
 
+        _includes = {}
+        for _d in [constants, self.ufs_includes]:
+            for k,v in _d.items():
+                _includes[k] = v
+
         self.pipeline = self.ctx.pipeline(
-            includes=constants | self.ufs_includes,
+            includes=_includes,
             vertex_shader=read_file(self.vert_shader_path),
             fragment_shader=read_file(self.frag_shader_path),
             layout=layout,
