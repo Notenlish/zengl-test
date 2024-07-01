@@ -34,48 +34,6 @@ void main() {
     float dis = distance(vec2(screenResolution * 0.5), pos);
     if (dis <= bodyRadius) {
         vec2 pixellized_uv = floor(fragCoord * pixels) / pixels;
-        /*
-        // Calculate 2D normalized coordinates
-        vec2 uv = fragCoord;
-
-        // Convert 2D normalized coordinates (uv) to spherical coordinates
-        float phi = uv.x * 3.141592653589793 * 2.0;  // Azimuthal angle (0 to 2π)
-        float theta = uv.y * 3.141592653589793;      // Polar angle (0 to π)
-
-        // Convert spherical coordinates to 3D Cartesian coordinates
-        vec3 spherePosition;
-        spherePosition.x = -sin(phi);
-        spherePosition.y = cos(theta);
-        spherePosition.z = getZSphere2(uv, dis);
-
-        // cos(phi) * cos(theta)  ==> lits up bottom part
-        // sin(theta)  ==> nearly everywhere is lit up
-        */
-
-        /*
-        // Convert spherical coordinates to Normal
-        vec2 uv_remap = pos - vec2(screenResolution * 0.5); // replace vec2(screenResolution * 0.5) with pos in future
-        vec3 normal = vec3(uv_remap.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
-
-        // Calculate the spherical coordinates
-        float phi2 = atan(spherePosition.y, -spherePosition.x);
-        float theta2 = acos(spherePosition.z);
-
-        // Normalize phi to range [0, 1]
-        float u = phi2 / (2.0 * 3.141592653589793);
-
-        // Normalize theta to range [0, 1]
-        float v = theta2 / 3.141592653589793;
-
-        // Ensure UV coordinates are in the range [0, 1]
-        if (u < 0.0) u += 1.0;
-        if (v < 0.0) v += 1.0;
-
-        // Now u and v are the 2D UV coordinates for the planet texture
-        vec2 texture_uv = vec2(u, v);
-        */
-        
-        
         
         vec2 uv_remap = pos - vec2(screenResolution * 0.5); // replace vec2(screenResolution * 0.5) with pos in future
         vec3 normal = vec3(uv_remap.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
@@ -106,38 +64,25 @@ void main() {
         }
         */
 
-        // light pos modifications
-        float rot = 0.0 + time; // between 0 and 2pi
-        rot = mod(rot, 2.0 * PI);
-        vec2 light_pos_mod = vec2(sin(rot), cos(rot)) * vec2(2.0);
 
-        vec3 newlightDirection = vec3(0.3 + light_pos_mod.x, 0.3, -1.0 + light_pos_mod.y);
+        vec3 lightColor = vec3(1.0);
+		float ringcount = 0.1001; // 1/ringcount
+		float graincount = 128.0; // really its just totalGrainsInGrid
+		float edge = 0.05; // must be less than 1/ringcount
 
-        vec3 lightColor = vec3(1.0, 1.0, 1.0);
-
-        vec3 NotfragColor = vec4(texture(planetTexture, texture_uv).bgr, 1.0).rgb * lightColor; //lightColor is a uniform vec3
-        NotfragColor = NotfragColor * max(dot(normal, -normalize(newlightDirection)), 0.01); //lightDirection is also a uniform
-        NotfragColor -= mod(NotfragColor, 0.1001); // floor to 0.1 w/out messin up center px
-        // fragColor = vec4(NotfragColor, 1); 
-
-
-        int grainSize = 128;
-
-        /*
-        // grain
-        ivec2 pixelCoords = ivec2(pos.xy);
-        ivec2 pixelFloordiv = pixelCoords - (pixelCoords%(grainSize*2));
-        if ((pixelFloordiv.x < grainSize && pixelFloordiv.y < grainSize) || (pixelFloordiv.x > grainSize && pixelFloordiv.y > grainSize)) { // error here
-            NotfragColor.rgb += vec3(0.1);
-        }
-        NotfragColor = clamp(NotfragColor, 0.0, 1.0);
-        */
-
+        vec3 NotfragColor = texture(planetTexture, texture_uv).bgr * lightColor; //lightColor is a uniform vec3
+		float ls = max(dot(normal, -normalize(lightDirection)), 0.04);
+		if (mod(ls, ringcount) >= edge && ls < 0.899) {
+		
+			if ((mod(texture_uv.x*graincount, 2.0) < 1.0 && mod(texture_uv.y*graincount, 2.0) < 1.0) ||
+				(mod(texture_uv.x*graincount, 2.0) > 1.0 && mod(texture_uv.y*graincount, 2.0) > 1.0)) {
+				ls += 0.1001;
+			}
+		}
+        NotfragColor = NotfragColor * max(ls - mod(ls, 0.1001), 0.04); //lightDirection is also a uniform
+        //NotfragColor -= mod(NotfragColor, 0.1001); // floor to 0.1 w/out messin up center px, helpful when adding a pallete
+        
         fragColor = vec4(NotfragColor, 1.0);
-
-        // Example: Coloring based on the spherical coordinates
-        // vec3 color = spherePosition * 0.5 + 0.5;  // Adjust to range [0,1]
-        // vec3 color = vec3(spherePosition);
     } else {
         fragColor = texture(Texture, fragCoord).bgra;
     }
