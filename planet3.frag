@@ -55,8 +55,8 @@ float fbm(vec2 coord){
 	}
 	return value;
 }
-
-float getZSphere(float rad, float x, float y) {
+/*
+float getZSphere(float rad, float x, float y) { // WHY ARE THESE ***STILL*** HERE
     return sqrt(pow(rad, 2.0) - pow(x, 2.0) - pow(y, 2.0));
 }
 
@@ -64,13 +64,13 @@ float getZSphere2(vec2 uv, float dis) {
     vec3 result = vec3(uv.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
     return result.z;
 }
-
+*/
 vec2 pixellize(vec2 uv) {
     // if you dont multiply by screenRes it wont work
     return floor(uv * screenResolution / pixelSize) / screenResolution * pixelSize;
 }
-
-vec2 rotate_uv(vec2 uv, float rotation)
+/*
+vec2 rotate_uv(vec2 uv, float rotation) // I CAN GENERATE A ROTATED UV MAP BTW
 {
     float cosAngle = cos(rotation);
     float sinAngle = sin(rotation);
@@ -81,8 +81,7 @@ vec2 rotate_uv(vec2 uv, float rotation)
     );
 }
 
-
-vec2 texture_uv_sphere(vec3 normal) {
+vec2 texture_uv_sphere(vec3 normal) {  // NOW ABSOLUTLY USELESS, KKEP FOR TEXTURE GEN
     float theta = acos(-normal.y);  // - to flip img vertically
     float phi = atan(normal.z, -normal.x);
 
@@ -93,19 +92,21 @@ vec2 texture_uv_sphere(vec3 normal) {
     // Now u and v are the 2D UV coordinates for the planet texture
     return vec2(u, v);
 }
+*/
 
 float cloud(vec2 texture_uv) {
     float fbm1 = fbm(texture_uv * vec2(100.0));
     float fbm_val = fbm(texture_uv * size+fbm1+vec2(time*time_speed, 0.0));
     return mod(fbm_val, 1.0);
 }
-
-vec3 normal_sphere(vec2 uv_remap, float dis) {
+/*
+vec3 normal_sphere(vec2 uv_remap, float dis) {  // NOW ABSOLUTLY USELESS, KKEP FOR TEXTURE GEN
     vec3 normal = vec3(uv_remap.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
     normal = normalize(normal);
     normal.z = clamp(normal.z, 0.1, 1.0);  // gets rid of weird jagged pixels
     return normal;
 }
+*/
 
 vec3 lighting(vec2 texture_uv, vec3 normal ) {
     vec3 lightColor = vec3(1.0);
@@ -180,10 +181,10 @@ void main() {
     if (dis < bodyRadius) {
 
 
-        vec2 uv_remap = pos - planetCenter;
-        vec3 normal = normal_sphere(uv_remap, dis);
+        vec2 uv_remap = (pos - planetCenter)/(bodyRadius*2.0) + 0.5; // just replace bodyRadius with cloudRadius
+        vec3 normal = texture(planetNormalTexture, uv_remap * vec2(1, -1)).bgr; // * 2.0 - 1.0;
 
-        vec2 texture_uv = texture_uv_sphere(normal);
+        vec2 texture_uv = texture(planetUVTexture, uv_remap * vec2(1, -1)).bg;
 
         // for this to work you need to use "wrap_x":"repeat" in the texture settings
         texture_uv.x += planetOffset;
@@ -197,7 +198,7 @@ void main() {
 
         vec3 col = lighting(texture_uv, normal); //+ vec3(1.0) * isCloud;
 
-        fragColor = vec4(col, 1.0);
+        fragColor = vec4(col.rgb, 1.0);
         
     } else {
         texture(planetNormalTexture, vec2(0.0,0.0));
