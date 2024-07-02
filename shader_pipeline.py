@@ -1,4 +1,5 @@
-from typing import TYPE_CHECKING, Dict
+from typing import TYPE_CHECKING
+from typing import Dict
 
 if TYPE_CHECKING:
     from main import App
@@ -15,10 +16,10 @@ class ShaderPipeline:
     def __init__(
         self,
         app: "App",
-        uniforms_map: Dict[any, any] = {},
+        uniforms_map: dict = {},
         vert_shader_path: str = "default",
         frag_shader_path: str = "default",
-        textures: Dict[str, Dict[str, any]] = {},
+        textures = {},
     ):
         self.app = app
         self.ctx = self.app.ctx
@@ -45,13 +46,13 @@ class ShaderPipeline:
         vec2_screen_size_str = (
             f"vec2({self.app.screen_size[0]}.0, {self.app.screen_size[1]}.0)"
         )
-        constants = {"constants": f"const vec2 iResolution = {vec2_screen_size_str};"}
+        constants = {"constants": f"ivec2 iResolution = {vec2_screen_size_str};"}
 
         _includes = {}
         for _d in [constants, self.ufs_includes]:
             for k,v in _d.items():
                 _includes[k] = v
-
+                
         self.pipeline = self.ctx.pipeline(
             includes=_includes,
             vertex_shader=read_file(self.vert_shader_path),
@@ -88,14 +89,14 @@ class ShaderPipeline:
                     "image": self.images[tex_name],
                     "min_filter": "nearest",
                     "mag_filter": "nearest",
-                    "wrap_x": "clamp_to_edge",
-                    "wrap_y": "clamp_to_edge",
+                    "wrap_x": "repeat",
+                    "wrap_y": "repeat",
                 }
             )
             i += 1
         return layout, resources
 
-    def render(self, surfaces: Dict[str, any]):
+    def render(self, surfaces: dict):
         self.update_uniforms()
 
         for tex_name, surf in surfaces.items():
@@ -110,31 +111,41 @@ class ShaderPipeline:
                 self.uniform_buffer.write(uniform["value"](), offset=uniform["offset"])
 
     @staticmethod
-    def pack_uniforms(uniforms_map: Dict[any, any]) -> tuple[Dict[any, any], int, Dict[any, any]]:
+    def pack_uniforms(uniforms_map):
         uniforms = {}
         layout = ""
         offset = 0
         for uf_name, uf_data in uniforms_map.items():
-            if uf_data["glsl_type"] == "float":
+            uf_data: Dict[str, str]
+            data_type = uf_data["glsl_type"]
+            if data_type == "float":
                 size = 4  # Size of a float in bytes
                 align = 4
-            elif uf_data["glsl_type"] == "vec2":
+            elif data_type == "int":
+                size = 4  # why dont you work...
+                align = 4
+            elif data_type == "vec2":
                 size = 8  # 2 floats
                 align = 8
-            elif uf_data["glsl_type"] == "vec3":
+            elif data_type == "vec3":
                 size = 12  # 3 floats, but aligned as vec4 in std140 layout
                 align = 16
-            elif uf_data["glsl_type"] == "vec4":
+            elif data_type == "vec4":
                 size = 16  # 4 floats
                 align = 16
-            elif uf_data["glsl_type"] == "mat4":
+            elif data_type == "mat4":
                 size = 64  # 4x4 floats
                 align = 16  # aligned as vec4 in std140 layout
-            elif uf_data["glsl_type"] == "ivec2":
+            elif data_type == "ivec2":
                 size = 8  # 2 i32
                 align = 8
-            elif uf_data["glsl_type"] == "vec3[32]":
-                size = 16 * 32  # 32 vec3 elements, each aligned to 16 bytes (vec4)
+            elif data_type.startswith("vec3"):  # must be vec3 array
+                arr_size = data_type[5]
+                size = 16 * int(arr_size)
+                align = 16
+            elif data_type.startswith("vec4"):  # must be vec4 array
+                arr_size = data_type[5]
+                size = 16 * int(arr_size)  # untested but should work
                 align = 16
             else:
                 raise ValueError(
