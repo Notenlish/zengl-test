@@ -47,7 +47,7 @@ class App:
         self.time_elapsed = 0
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
-        self.shaders = {"vert": "default.vert", "frag": "planet2.frag"}
+        self.shaders = {"vert": "default.vert", "frag": "planet.frag"}
         self.since_shader_check = 0
 
         if self.using_gpu:
@@ -174,7 +174,6 @@ class App:
 
     def pg_draw(self):
         self.pg_surf.fill("black")
-        self.pg_surf.blit(self.screenshot, (100, 100))
 
         surf = self.font.render(f"{self.camera.x}, {self.camera.y}", False, "white")
         self.pg_surf.blit(surf, (0, 0))
