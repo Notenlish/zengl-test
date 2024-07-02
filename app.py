@@ -1,3 +1,10 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = [
+#   "requests<3",
+#   "rich",
+# ]
+# ///
 import numpy as np
 import zengl
 import struct
@@ -9,6 +16,8 @@ import os
 from shader_pipeline import ShaderPipeline
 import importlib
 
+UNCAPPED = True
+
 
 class App:
     def __init__(self) -> None:
@@ -17,14 +26,13 @@ class App:
         pygame.init()
         self.screen_size = (1280, 720)
         self.using_gpu = True
-        self.max_fps = 60
+        self.max_fps = 60 if not UNCAPPED else 0
 
         self.bodyRadius = 100
         self.cloudRadius = 110
         self.planetPos = (0.5 * self.screen_size[0], 0.5 * self.screen_size[1])
 
         self.pg_surf = self.init_screen()
-        pygame.display.set_caption("Shaders in Browser Test")
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.time_elapsed = 0
@@ -78,7 +86,7 @@ class App:
             display_kwargs = {
                 "size": self.screen_size,
                 "flags": pygame.OPENGL | pygame.DOUBLEBUF,
-                "vsync": True,
+                "vsync": False,
             }
             # pygame needs to use RGBA mode otherwise it wont work with opengl
             try:
@@ -127,7 +135,7 @@ class App:
         self.pg_surf.fill("black")
         self.pg_surf.blit(self.screenshot, (100, 100))
 
-    def run(self):
+    async def run(self):
         while True:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
@@ -144,7 +152,12 @@ class App:
 
             self.dt = self.clock.tick(self.max_fps) / 1000
             self.fps = self.clock.get_fps()
+            fps = self.clock.get_fps()
+            pygame.display.set_caption(
+                f"Shaders in Browser Test | FPS:{fps:.0f} DT:{self.dt}"
+            )
             self.time_elapsed += self.dt
             self.since_shader_check += self.dt
 
             pygame.display.flip()
+            await asyncio.sleep(0)
