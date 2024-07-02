@@ -208,7 +208,7 @@ class App:
     def pg_draw(self):
         self.pg_surf.fill("#222222")
 
-        surf = self.font.render(f"{self.camera.x}, {self.camera.y}", False, "white")
+        surf = self.font.render(f"{self.camera.x}, {self.camera.y}", True, "white")
         self.pg_surf.blit(surf, (0, 0))
 
     async def run(self):
