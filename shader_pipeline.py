@@ -88,8 +88,8 @@ class ShaderPipeline:
                     "image": self.images[tex_name],
                     "min_filter": "nearest",
                     "mag_filter": "nearest",
-                    "wrap_x": "clamp_to_edge",
-                    "wrap_y": "clamp_to_edge",
+                    "wrap_x": "repeat",  # clamp_to_edge == you need to give 0 - 1
+                    "wrap_y": "repeat",  # repeat == automatically repeats texture
                 }
             )
             i += 1

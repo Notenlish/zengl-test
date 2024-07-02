@@ -5,6 +5,7 @@
 #   "numpy",
 #   "struct",
 #   "zengl",
+#   "webcolors"
 # ]
 # ///
 import numpy as np
@@ -12,6 +13,7 @@ import zengl
 import struct
 
 import pygame
+import webcolors
 
 import os
 import asyncio

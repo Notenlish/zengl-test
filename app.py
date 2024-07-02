@@ -40,6 +40,8 @@ class App:
         self.shouldMoveLight = True
         self.lightDirection = [0.3, 0.6, -1.0]
         self.speed = 500
+        self.time_speed = 1.0
+        self.planetRotationSpeed = 0.05
 
         self.pg_surf = self.init_screen()
         self.clock = pygame.time.Clock()
@@ -47,7 +49,7 @@ class App:
         self.time_elapsed = 0
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
-        self.shaders = {"vert": "default.vert", "frag": "planet.frag"}
+        self.shaders = {"vert": "default.vert", "frag": "planet3.frag"}
         self.since_shader_check = 0
 
         if self.using_gpu:
@@ -135,11 +137,11 @@ class App:
                 file_mod_time = os.stat(shader_path).st_mtime
                 if file_mod_time > self.shader_history[shader_path]:
                     self.shader_history[shader_path] = file_mod_time
-                    # self.screen_shader.reload_shaders()
+                    self.screen_shader.reload_shaders()
                     # just reload using F1
 
     def update(self):
-        self.check_shader_change()
+        # self.check_shader_change()
         self.move()
         self.calculate_uniforms()
 

@@ -18,7 +18,10 @@ Big thanks to `@dom0196` and `Szabolcs Dombi` from moderngl server for the help 
 ## Where did I get the shaders
 
 https://github.com/opatut/Shaders/blob/master/data/underwater.glsl -> underwater shader
+
 https://deep-fold.itch.io/pixel-planet-generator --> planet2 frag
+
+planet.frag --> combination of functions from `planet2.frag`, [@HmarDev](https://github.com/HmarVR)'s code and some of my custom code
 
 https://www.shadertoy.com/view/XtjcRd
 https://www.shadertoy.com/view/XttyRX
