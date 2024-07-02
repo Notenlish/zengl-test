@@ -13,13 +13,15 @@ import importlib
 class App:
     def __init__(self) -> None:
         self.mod = importlib.import_module("uniforms", "uniforms")
-        
+
         pygame.init()
         self.screen_size = (1280, 720)
         self.using_gpu = True
         self.max_fps = 60
 
         self.bodyRadius = 100
+        self.cloudRadius = 110
+        self.planetPos = (0.5 * self.screen_size[0], 0.5 * self.screen_size[1])
 
         self.pg_surf = self.init_screen()
         pygame.display.set_caption("Shaders in Browser Test")
@@ -37,7 +39,7 @@ class App:
     def load_uniforms(self):
         self.mod = importlib.reload(self.mod)
         self.uniforms_map = self.mod.get_uniforms(self)
-    
+
     def update_uniforms(self):
         self.screen_shader.uniforms, _, _ = self.screen_shader.pack_uniforms(
             self.uniforms_map
@@ -94,7 +96,7 @@ class App:
         if self.since_shader_check > 1:  # check every second
             self.load_uniforms()
             self.update_uniforms()  # send to shader
-            
+
             self.since_shader_check = 0
             if not hasattr(self, "shader_history"):
                 self.shader_history = {
@@ -105,7 +107,8 @@ class App:
                 file_mod_time = os.stat(shader_path).st_mtime
                 if file_mod_time > self.shader_history[shader_path]:
                     self.shader_history[shader_path] = file_mod_time
-                    self.screen_shader.reload_shaders()
+                    # self.screen_shader.reload_shaders()
+                    # just reload using F1
 
     def update(self):
         self.check_shader_change()

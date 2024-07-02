@@ -11,7 +11,7 @@ import subprocess
 
 SHADER_TESTING = True
 
+from app import App
 if __name__ == "__main__":
-    from app import App
     app = App()
     app.run()

@@ -32,8 +32,16 @@ def get_uniforms(self):
             "value": lambda: struct.pack("f", self.time_elapsed),
             "glsl_type": "float",
         },
+        "planetCenter": {
+            "value": lambda: struct.pack("ff", *self.planetPos),
+            "glsl_type": "vec2",
+        },
         "bodyRadius": {
             "value": lambda: struct.pack("f", self.bodyRadius),
+            "glsl_type": "float",
+        },
+        "cloudRadius": {
+            "value": lambda: struct.pack("f", self.cloudRadius),
             "glsl_type": "float",
         },
         "screenResolution": {
@@ -43,6 +51,10 @@ def get_uniforms(self):
             "glsl_type": "vec2",
         },
         "aspectRatio": {
+            "value": lambda: struct.pack("f", 16 / 9),
+            "glsl_type": "float",
+        },
+        "screenAspect": {
             "value": lambda: struct.pack("ff", 16, 9),
             "glsl_type": "vec2",
         },
@@ -50,10 +62,10 @@ def get_uniforms(self):
             "value": lambda: struct.pack("fff", 0.3, 0.6, -1),
             "glsl_type": "vec3",
         },
-        "palette": {"value": get_palette_buf, "glsl_type": f"vec3[{palette_size}]"},
         "paletteSize": {
-            "value": lambda: struct.pack("f", palette_size),
-            "glsl_type": "float",
+            "value": lambda: struct.pack("i", palette_size),
+            "glsl_type": "int",
         },
+        "palette": {"value": get_palette_buf, "glsl_type": f"vec3[{palette_size}]"},
     }
     return uniforms_map
