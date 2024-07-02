@@ -14,9 +14,12 @@ import pygame
 import os
 
 from shader_pipeline import ShaderPipeline
+from camera import Camera
+from planets import BODIES
+
 import importlib
 
-UNCAPPED = True
+UNCAPPED = False
 
 
 class App:
@@ -24,13 +27,19 @@ class App:
         self.mod = importlib.import_module("uniforms", "uniforms")
 
         pygame.init()
+        self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
+
         self.screen_size = (1280, 720)
         self.using_gpu = True
         self.max_fps = 60 if not UNCAPPED else 0
+        self.camera = Camera(0, 0)
 
         self.bodyRadius = 100
         self.cloudRadius = 110
         self.planetPos = (0.5 * self.screen_size[0], 0.5 * self.screen_size[1])
+        self.shouldMoveLight = True
+        self.lightDirection = [0.3, 0.6, -1.0]
+        self.speed = 500
 
         self.pg_surf = self.init_screen()
         self.clock = pygame.time.Clock()
@@ -38,7 +47,7 @@ class App:
         self.time_elapsed = 0
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
-        self.shaders = {"vert": "default.vert", "frag": "planet.frag"}
+        self.shaders = {"vert": "default.vert", "frag": "planet2.frag"}
         self.since_shader_check = 0
 
         if self.using_gpu:
@@ -81,6 +90,17 @@ class App:
             },
         )
 
+    def move(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_w]:
+            self.camera.y -= self.speed * self.dt
+        if keys[pygame.K_a]:
+            self.camera.x -= self.speed * self.dt
+        if keys[pygame.K_s]:
+            self.camera.y += self.speed * self.dt
+        if keys[pygame.K_d]:
+            self.camera.x += self.speed * self.dt
+
     def init_screen(self):
         if self.using_gpu:
             display_kwargs = {
@@ -120,6 +140,8 @@ class App:
 
     def update(self):
         self.check_shader_change()
+        self.move()
+        self.calculate_uniforms()
 
     def render(self):
         # cpu drawing
@@ -131,9 +153,31 @@ class App:
             self.screen_shader.render({"Texture": self.pg_surf})
             self.ctx.end_frame()
 
+    def calculate_uniforms(self):
+        # calculates uniforms for planet pos
+        closest_dis = 999_999_999
+        body_name = None
+        cam_pos = pygame.Vector2(self.camera.x, self.camera.y)
+        
+        for name, body in BODIES.items():
+            bodypos: pygame.Vector2 = body["bodyPos"]
+            dis = cam_pos - bodypos
+            if dis.length() < closest_dis:
+                closest_dis = dis.length()
+                body_name = name
+        
+        body = BODIES[body_name]
+        self.bodyRadius = body["bodyRadius"]
+        self.cloudRadius = body["cloudRadius"]
+        self.planetPos = body["bodyPos"] - cam_pos
+        self.lightDirection = body["lightDirection"]
+
     def pg_draw(self):
         self.pg_surf.fill("black")
         self.pg_surf.blit(self.screenshot, (100, 100))
+
+        surf = self.font.render(f"{self.camera.x}, {self.camera.y}", False, "white")
+        self.pg_surf.blit(surf, (0, 0))
 
     async def run(self):
         while True:
@@ -141,6 +185,8 @@ class App:
                 if event.type == pygame.QUIT:
                     pygame.quit()
                     raise SystemExit
+                if event.type == pygame.MOUSEMOTION:
+                    self.planetPos = pygame.mouse.get_pos()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F1:
                         self.screen_shader.reload_shaders()

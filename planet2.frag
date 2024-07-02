@@ -1,5 +1,6 @@
 #version 300 es
 precision highp float;
+precision highp int;
 
 uniform sampler2D Texture;  // pygame surface passed to the gpu.
 uniform sampler2D planetTexture;
@@ -22,7 +23,7 @@ float getZSphere2(vec2 uv, float dis) {
 }
 
 
-float pixels = 50.0; // 10.0 - 200.0 ig
+float pixels = 100.0; // 10.0 - 200.0 ig
 float rotation = 1.0; // between 0.0, 6.28(2pi)
 vec2 light_origin = vec2(0.39, 0.39);
 float time_speed = 0.2;

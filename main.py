@@ -1,7 +1,7 @@
 # /// script
 # requires-python = ">=3.12"
 # dependencies = [
-#   "pygame",
+#   "pygame-ce",
 #   "numpy",
 #   "struct",
 #   "zengl",
@@ -19,7 +19,6 @@ import asyncio
 from shader_pipeline import ShaderPipeline
 
 SHADER_TESTING = True
-UNCAPPED = True
 
 from app import App
 

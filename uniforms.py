@@ -1,4 +1,6 @@
 import struct
+import math
+from copy import deepcopy
 
 _palette = """000000
 21283f
@@ -24,6 +26,22 @@ def get_palette_buf():
     for rgb in palette:
         buffer.extend(struct.pack("fff", *rgb))
     return buffer
+
+
+def get_light_moved(self):
+    lightSpeed = 4.0
+    startLightRot = 0.0
+    rot = startLightRot + (self.time_elapsed * lightSpeed)  # between 0 and 2pi
+    rot %= 2.0 * math.pi
+    offset = (math.sin(rot) * 2.0, math.cos(rot) * 2.0);
+    
+    newLightDirection = deepcopy(self.lightDirection);
+    if self.shouldMoveLight:
+        newLightDirection[0] += offset[0]
+        newLightDirection[2] += offset[1]
+
+    return newLightDirection;
+    
 
 
 def get_uniforms(self):
@@ -59,8 +77,12 @@ def get_uniforms(self):
             "glsl_type": "vec2",
         },
         "lightDirection": {
-            "value": lambda: struct.pack("fff", 0.3, 0.6, -1),
+            "value": lambda: struct.pack("fff", *self.lightDirection),
             "glsl_type": "vec3",
+        },
+        "movedLightDirection": {
+            "value": lambda: struct.pack("fff", *get_light_moved(self)),
+            "glsl_type":"vec3",
         },
         "paletteSize": {
             "value": lambda: struct.pack("i", palette_size),

@@ -14,10 +14,10 @@ float PI = 3.1415926535897932384626433832795;
 vec2 light_origin = vec2(0.7, 0.5);
 float pixelSize = 8.0;
 
-bool shouldMoveLight = true;
+float planetRotationSpeed = 0.05;
 
 // Planet Gen Godot Parameters //
-float size = 50.0;  // controls fbm size + rand function // 40 - 200
+float size = 25.0;  // controls fbm size + rand function // 40 - 200
 float seed = 3.4;
 int OCTAVES = 2;  // between 2 - 20
 float time_speed = 1.0;
@@ -62,25 +62,29 @@ float getZSphere2(vec2 uv, float dis) {
     return result.z;
 }
 
-vec3 moveLightDirection(vec3 oldDirection) {
-    float rot = 0.0 + time; // between 0 and 2pi
-    rot = mod(rot, 2.0 * PI);
-    vec2 offset = vec2(sin(rot), cos(rot)) * vec2(2.0);
-    
-    
-    vec3 newLightDirection = oldDirection;
-    if (shouldMoveLight) {
-        newLightDirection += vec3(offset.x, 0, offset.y);
-    }
-
-    return newLightDirection;
-}
-
 vec2 pixellize(vec2 uv) {
     // if you dont mul by screenRes it 
     return floor(uv * screenResolution / pixelSize) / screenResolution * pixelSize;
 }
 
+
+vec2 texture_uv_sphere(vec3 normal) {
+    float theta = acos(-normal.y);  // - to flip img vertically
+    float phi = atan(normal.z, -normal.x);
+
+    // Convert spherical coordinates to texture coordinates
+    float u = (phi + PI) / (2.0 * 3.141592653589793);
+    float v = theta / 3.141592653589793;
+
+    // Now u and v are the 2D UV coordinates for the planet texture
+    return vec2(u, v);
+}
+
+float cloud(vec2 texture_uv) {
+    float fbm1 = fbm(texture_uv * vec2(100.0));
+    float fbm_val = fbm(texture_uv * size+fbm1+vec2(time*time_speed, 0.0));
+    return mod(fbm_val, 1.0);
+}
 
 void main() {
     vec2 pos = fragCoord * screenResolution;
@@ -90,27 +94,14 @@ void main() {
         vec2 uv_remap = pos - planetCenter;
         vec3 normal = vec3(uv_remap.xy, sqrt(cloudRadius*cloudRadius - dis*dis))/cloudRadius;
         normal = normalize(normal);
-        if (normal.z > 0.2) {
-            float theta = acos(-normal.y);  // - to flip img vertically
-            float phi = atan(normal.z, -normal.x);
 
-            // Convert spherical coordinates to texture coordinates
-            float u = (phi + PI) / (2.0 * 3.141592653589793);
-            float v = theta / 3.141592653589793;
+        if (normal.z > 0.0) {  // branching = bad, there should be a better way.
+            vec2 texture_uv = texture_uv_sphere(normal);
 
-            // Now u and v are the 2D UV coordinates for the planet texture
-            vec2 texture_uv = vec2(u, v);
-
-            /*
-            float fbm1 = fbm(texture_uv * vec2(100.0));
-            float fbm_val = fbm(texture_uv * size+fbm1+vec2(time*time_speed, 0.0));
-            fbm_val = mod(fbm_val, 1.0);
-            */
-            float n1 = noise(texture_uv * vec2(10.0) + vec2(time * 0.1, time * 0.001));
-            float n2 = 0.5 * noise(texture_uv * vec2(20.0) + vec2(time * 0.1, time * 0.001));
-            float cloud_val = n1 + n2;
-            if (cloud_val > 0.9) {
-                fragColor = vec4(vec3(1.0), 1.0);
+            float cloud_val = cloud(pixellize(texture_uv));
+            
+            if (cloud_val > 0.45) {
+                fragColor = vec4(vec3(cloud_val), 1.0);
             }  else if (dis <= bodyRadius) {
                 uv_remap = pos - planetCenter; // replace vec2(screenResolution * 0.5) with pos in future
                 normal = vec3(uv_remap.xy, sqrt(bodyRadius*bodyRadius - dis*dis))/bodyRadius;
@@ -118,42 +109,31 @@ void main() {
                 // Normalize the normal vector
                 normal = normalize(normal);
                 
+                vec2 offset = vec2(time * time_speed * planetRotationSpeed, 0);
+
                 // Calculate spherical coordinates
-                theta = acos(-normal.y);  // - to flip img vertically
-                phi = atan(normal.z, -normal.x);
+                float theta = acos(-normal.y);  // - to flip img vertically
+                float phi = atan(normal.z, -normal.x);
 
                 // Convert spherical coordinates to texture coordinates
-                u = (phi + PI) / (2.0 * 3.141592653589793);
-                v = theta / 3.141592653589793;
+                float u = (phi + PI) / (2.0 * 3.141592653589793);
+                float v = theta / 3.141592653589793;
 
                 // Now u and v are the 2D UV coordinates for the planet texture
                 texture_uv = vec2(u, v);
-
-                /*
-                // calculate light dist
-                float d_light = distance(texture_uv, light_result);
-                vec3 col = texture(planetTexture, texture_uv).bgr;
-
-                if (d_light > 1.0) {
-                    col -= vec3(0.3);
-                }
-                */
-
+                texture_uv += offset;
+                texture_uv = vec2(mod(texture_uv.x, 1.0), mod(texture_uv.y, 1.0));
 
                 vec3 lightColor = vec3(1.0);
                 float ringcount = 0.2001; // 1/ringcount
                 float graincount = 128.0; // really its just totalGrainsInGrid
                 float edge = 0.05; // must be less than 1/ringcount
 
-
-                // move light
-                vec3 newLightDirection = moveLightDirection(lightDirection);
-
                 float fbm1 = fbm(texture_uv);
                 float fbm_val = fbm(texture_uv*size+fbm1+vec2(time*time_speed, 0.0)) * 0.3;
 
                 vec3 NotfragColor = texture(planetTexture, texture_uv).bgr * lightColor; //lightColor is a uniform vec3
-                float ls = max(dot(normal, -normalize(newLightDirection)), 0.04); // luminosity
+                float ls = max(dot(normal, -normalize(movedLightDirection)), 0.04); // luminosity
                 ls -= fbm_val;
                 if (mod(ls, ringcount) >= edge && ls < 0.899) {
                     if ((mod(texture_uv.x*graincount, 2.0) < 1.0 && mod(texture_uv.y*graincount, 2.0) < 1.0) ||
