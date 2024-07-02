@@ -27,12 +27,19 @@ class App:
         self.mod = importlib.import_module("uniforms", "uniforms")
 
         pygame.init()
+        self.using_gpu = True
+        self.screen_size = (1280, 720)
+        self.pg_surf = self.init_screen()
         self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
 
-        self.screen_size = (1280, 720)
-        self.using_gpu = True
         self.max_fps = 60 if not UNCAPPED else 0
         self.camera = Camera(0, 0)
+        
+        self.planet_textures = {}
+        self.load_planet_textures()
+        self.latest_planet = None
+        self.planet_id = None
+        first_planet_name = list(self.planet_textures.keys())[0]
 
         self.bodyRadius = 100
         self.cloudRadius = 110
@@ -43,7 +50,6 @@ class App:
         self.time_speed = 1.0
         self.planetRotationSpeed = 0.05
 
-        self.pg_surf = self.init_screen()
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.time_elapsed = 0
@@ -63,7 +69,12 @@ class App:
         self.screen_shader.uniforms, _, _ = self.screen_shader.pack_uniforms(
             self.uniforms_map
         )
-
+    
+    def load_planet_textures(self):
+        for name, body in BODIES.items():
+            img = pygame.image.load(f"{name.lower()}.png").convert_alpha()    
+            self.planet_textures[name] = img
+    
     def setup_gpu(self):
         self.ctx = zengl.context()
 
@@ -72,7 +83,11 @@ class App:
 
         self.load_uniforms()
 
-        self.planet_texture = pygame.image.load("earth.png").convert_alpha()
+        self.planet_normal_texture = pygame.image.load("normal.png").convert_alpha()
+        self.planet_uv_texture = pygame.image.load("uv.png").convert_alpha()
+
+        first_planet_name = list(self.planet_textures.keys())[0]
+        first_planet_texture = self.planet_textures[first_planet_name]
 
         self.screen_shader = ShaderPipeline(
             self,
@@ -86,9 +101,19 @@ class App:
                 },  # pg_surf will go here
                 "planetTexture": {
                     "dynamic": False,
-                    "img": self.planet_texture,
-                    "size": self.planet_texture.get_size(),
+                    "img": first_planet_texture,
+                    "size": first_planet_texture.get_size(),
                 },
+                "planetNormalTexture": {
+                    "dynamic":False,
+                    "img": self.planet_normal_texture,
+                    "size": self.planet_normal_texture.get_size()
+                },
+                "planetUVTexture": {
+                    "dynamic":False,
+                    "img": self.planet_uv_texture,
+                    "size": self.planet_uv_texture.get_size()
+                }
             },
         )
 
@@ -152,7 +177,10 @@ class App:
         if self.using_gpu:
             # zengl
             self.ctx.new_frame()
-            self.screen_shader.render({"Texture": self.pg_surf})
+            updated = {"Texture": self.pg_surf}
+            if self.has_changed_planet:
+                updated["planetTexture"] = self.planet_textures[self.latest_planet]
+            self.screen_shader.render(updated)
             self.ctx.end_frame()
 
     def calculate_uniforms(self):
@@ -173,9 +201,12 @@ class App:
         self.cloudRadius = body["cloudRadius"]
         self.planetPos = body["bodyPos"] - cam_pos
         self.lightDirection = body["lightDirection"]
+        self.has_changed_planet = True if self.latest_planet != body_name else False
+        self.latest_planet = body_name
+        self.planet_id = list(BODIES.keys()).index(body_name)
 
     def pg_draw(self):
-        self.pg_surf.fill("black")
+        self.pg_surf.fill("#222222")
 
         surf = self.font.render(f"{self.camera.x}, {self.camera.y}", False, "white")
         self.pg_surf.blit(surf, (0, 0))
@@ -193,6 +224,12 @@ class App:
                         self.screen_shader.reload_shaders()
                         self.load_uniforms()
                         self.update_uniforms()  # send to shader
+                    if event.key == pygame.K_F2:
+                        self.planet_id += 1
+                        self.planet_id %= len(BODIES.keys())
+                        planet = BODIES[list(BODIES.keys())[self.planet_id]]
+                        self.camera.x = planet["bodyPos"].x
+                        self.camera.y = planet["bodyPos"].y
 
             self.update()
             self.render()

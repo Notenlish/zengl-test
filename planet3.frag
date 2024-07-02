@@ -4,6 +4,8 @@ precision highp int;
 
 uniform sampler2D Texture;  // pygame surface passed to the gpu.
 uniform sampler2D planetTexture;
+uniform sampler2D planetNormalTexture;
+uniform sampler2D planetUVTexture;
 
 #include "uniforms"
 
@@ -193,11 +195,13 @@ void main() {
         float cloud_val = cloud(texture_uv);
         float isCloud = step(cloud_val, 0.35);
 
-        vec3 col = lighting2(texture_uv, normal); //+ vec3(1.0) * isCloud;
+        vec3 col = lighting(texture_uv, normal); //+ vec3(1.0) * isCloud;
 
         fragColor = vec4(col, 1.0);
         
     } else {
+        texture(planetNormalTexture, vec2(0.0,0.0));
+        texture(planetUVTexture, vec2(0.0,0.0));
         fragColor = texture(Texture, fragCoord).bgra;
     }
     
