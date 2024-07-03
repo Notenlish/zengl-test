@@ -19,7 +19,7 @@ for v in _palette:
     rgb = webcolors.hex_to_rgb(v if v[0]=="#" else f"#{v}")
     color = [rgb.red / 255, rgb.green / 255, rgb.blue / 255, 1.0]  # rgba
     palette.append(color)
-
+print(palette)
 
 def set_speeds(self):
     self.time_speed = 1.0
@@ -74,16 +74,16 @@ def get_uniforms(self):
         },
         "screenResolution": {
             "value": lambda: struct.pack(
-                "ff", self.screen_size[0], self.screen_size[1]
+                "ff", 640.0, 480.0
             ),
             "glsl_type": "vec2",
         },
         "aspectRatio": {
-            "value": lambda: struct.pack("f", 16 / 9),
+            "value": lambda: struct.pack("f", 3 / 2),
             "glsl_type": "float",
         },
         "screenAspect": {
-            "value": lambda: struct.pack("ff", 16, 9),
+            "value": lambda: struct.pack("ff", 3, 2),
             "glsl_type": "vec2",
         },
         "lightDirection": {

@@ -7,7 +7,7 @@ import asyncio
 import pygame
 import os
 
-from shader_pipeline import ShaderPipeline
+from shader_pipeline import ShaderPipeline, ShaderPipelinePostProc
 from camera import Camera
 from planets import BODIES
 
@@ -22,14 +22,17 @@ class App:
 
         pygame.init()
         self.using_gpu = True
-        self.screen_size = (720, 405)
+        self.screen_size = (640, 480)
         try:
-            zengl_extras.init(gpu=True)
+            zengl_extras.init(gpu=True, opengl_core=False)
+            print("GPU")
         except:
-            zengl_extras.init(gpu=False)
+            zengl_extras.init(gpu=False, opengl_core=False)
+            
             
         self.pg_surf = self.init_screen()
         self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
+        UNCAPPED = True
 
         self.max_fps = 60 if not UNCAPPED else 1000
         self.camera = Camera(0, 0)
@@ -52,10 +55,10 @@ class App:
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.time_elapsed = 0
-        self.past_fps = []
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
         self.shaders = {"vert": "default.vert", "frag": "planet4.frag"}
+        self.shader2 = {"vert": "default.vert", "frag": "underwater.frag"}
         self.since_shader_check = 0
 
         if self.using_gpu:
@@ -116,6 +119,19 @@ class App:
                 }
             },
         )
+        
+        self.post_process = ShaderPipelinePostProc(self,
+            self.uniforms_map,
+            vert_shader_path=self.shader2["vert"],
+            frag_shader_path=self.shader2["frag"],
+            textures={
+                "Texture": {
+                    "dynamic": True,
+                    "size": (320, 240),
+                    "img": self.screen_shader.image_out
+                }
+            },
+        )
 
     def move(self):
         keys = pygame.key.get_pressed()
@@ -133,7 +149,7 @@ class App:
             display_kwargs = {
                 "size": self.screen_size,
                 "flags": pygame.OPENGL | pygame.DOUBLEBUF,
-                "vsync": not UNCAPPED,
+                "vsync": False,
             }
             # pygame needs to use RGBA mode otherwise it wont work with opengl
             try:
@@ -180,7 +196,16 @@ class App:
             updated = {"Texture": self.pg_surf}
             if self.has_changed_planet:
                 updated["planetTexture"] = self.planet_textures[self.latest_planet]
+                
+            self.screen_shader.image_out.clear()
+            self.screen_shader.depth_out.clear()
             self.screen_shader.render(updated)
+            
+            self.post_process.image_out.clear()
+            self.post_process.depth_out.clear()
+            self.post_process.render({"Texture": self.screen_shader.image_out})
+            
+            self.post_process.image_out.blit()
             self.ctx.end_frame()
 
     def calculate_uniforms(self):
@@ -238,16 +263,8 @@ class App:
             self.dt = self.clock.tick(self.max_fps) / 1000
             self.fps = self.clock.get_fps()
             fps = self.clock.get_fps()
-            self.past_fps.append(fps)
-            avg = 0
-            for fps in self.past_fps:
-                avg += fps
-            avg /= len(self.past_fps)
-            if len(self.past_fps) > 60:
-                self.past_fps.pop(0)
-            
             pygame.display.set_caption(
-                f"Shaders in Browser Test | Avg FPS:{avg:.0f} FPS:{fps:.0f} DT:{self.dt}"
+                f"Shaders in Browser Test | FPS:{fps:.0f} DT:{self.dt}"
             )
             self.time_elapsed += self.dt
             self.since_shader_check += self.dt
