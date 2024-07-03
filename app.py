@@ -1,12 +1,6 @@
-# /// script
-# requires-python = ">=3.11"
-# dependencies = [
-#   "requests<3",
-#   "rich",
-# ]
-# ///
 import numpy as np
 import zengl
+import zengl_extras
 import struct
 
 import asyncio
@@ -29,6 +23,10 @@ class App:
         pygame.init()
         self.using_gpu = True
         self.screen_size = (1280, 720)
+        try:
+            zengl_extras.init(gpu=True)
+        except:
+            zengl_extras.init(gpu=False)
         self.pg_surf = self.init_screen()
         self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
 

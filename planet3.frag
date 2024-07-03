@@ -200,9 +200,10 @@ void main() {
         fragColor = vec4(col, 1.0);
         
     } else {
-        texture(planetNormalTexture, vec2(0.0,0.0));
-        texture(planetUVTexture, vec2(0.0,0.0));
-        fragColor = texture(Texture, fragCoord).bgra;
+        vec3 c1 = texture(planetNormalTexture, vec2(0.0,0.0)).bgr;
+        vec3 c2 = texture(planetUVTexture, vec2(0.0,0.0)).bgr;
+        vec3 c3 = texture(Texture, fragCoord).bgr;
+        fragColor = vec4(c3 * vec3(0.99) + (c2+c1)*vec3(0.01), 1.0);
     }
     
 }

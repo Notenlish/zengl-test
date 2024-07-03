@@ -5,11 +5,13 @@
 #   "numpy",
 #   "struct",
 #   "zengl",
-#   "webcolors"
+#   "webcolors",
+#   "zengl-extras"
 # ]
 # ///
 import numpy as np
 import zengl
+import zengl_extras
 import struct
 
 import pygame
