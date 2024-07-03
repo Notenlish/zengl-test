@@ -13,7 +13,7 @@ from planets import BODIES
 
 import importlib
 
-UNCAPPED = True
+UNCAPPED = False
 
 
 class App:
@@ -24,9 +24,9 @@ class App:
         self.using_gpu = True
         self.screen_size = (1280, 720)
         try:
-            zengl_extras.init(gpu=True)
-        except:
             zengl_extras.init(gpu=False)
+        except:
+            zengl_extras.init(gpu=True)
         self.pg_surf = self.init_screen()
         self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
 
@@ -131,7 +131,7 @@ class App:
             display_kwargs = {
                 "size": self.screen_size,
                 "flags": pygame.OPENGL | pygame.DOUBLEBUF,
-                "vsync": False,
+                "vsync": True,
             }
             # pygame needs to use RGBA mode otherwise it wont work with opengl
             try:
