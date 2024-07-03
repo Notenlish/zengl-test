@@ -21,6 +21,11 @@ for v in _palette:
     palette.append(color)
 print(palette)
 
+def set_speeds(self):
+    self.time_speed = 1.0
+    self.planetRotationSpeed = 0.01
+    self.lightSpeed = 0.5
+
 
 def get_palette_buf():
     buffer = bytearray()
@@ -30,9 +35,8 @@ def get_palette_buf():
 
 
 def get_light_moved(self):
-    lightSpeed = 4.0
     startLightRot = 0.0
-    rot = startLightRot + (self.time_elapsed * lightSpeed)  # between 0 and 2pi
+    rot = startLightRot + (self.time_elapsed * self.lightSpeed)  # between 0 and 2pi
     rot %= 2.0 * math.pi
     offset = (math.sin(rot) * 2.0, math.cos(rot) * 2.0)
 
@@ -50,6 +54,7 @@ def get_planet_offset(self):
 
 
 def get_uniforms(self):
+    set_speeds(self)
     uniforms_map = {
         "time": {
             "value": lambda: struct.pack("f", self.time_elapsed),
@@ -106,5 +111,9 @@ def get_uniforms(self):
             "value": lambda: struct.pack("f", get_planet_offset(self)),
             "glsl_type": "float",
         },
+        "isStar": {
+            "value": lambda: struct.pack("?", self.isStar),
+            "glsl_type":"bool"
+        }
     }
     return uniforms_map

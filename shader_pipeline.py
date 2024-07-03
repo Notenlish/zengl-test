@@ -125,6 +125,9 @@ class ShaderPipeline:
             elif data_type == "int":
                 size = 4  # why dont you work...
                 align = 4
+            elif data_type == 'bool':
+                size = 1
+                align = 4
             elif data_type == "vec2":
                 size = 8  # 2 floats
                 align = 8

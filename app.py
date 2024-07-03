@@ -13,7 +13,7 @@ from planets import BODIES
 
 import importlib
 
-UNCAPPED = False
+UNCAPPED = True
 
 
 class App:
@@ -30,7 +30,7 @@ class App:
         self.pg_surf = self.init_screen()
         self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
 
-        self.max_fps = 60 if not UNCAPPED else 0
+        self.max_fps = 60 if not UNCAPPED else 1000
         self.camera = Camera(0, 0)
         
         self.planet_textures = {}
@@ -44,16 +44,16 @@ class App:
         self.planetPos = (0.5 * self.screen_size[0], 0.5 * self.screen_size[1])
         self.shouldMoveLight = True
         self.lightDirection = [0.3, 0.6, -1.0]
-        self.speed = 500
-        self.time_speed = 1.0
-        self.planetRotationSpeed = 0.05
+        self.movement_speed = 500
+        self.isStar = False
+        
 
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.time_elapsed = 0
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
-        self.shaders = {"vert": "default.vert", "frag": "planet3.frag"}
+        self.shaders = {"vert": "default.vert", "frag": "planet4.frag"}
         self.since_shader_check = 0
 
         if self.using_gpu:
@@ -118,13 +118,13 @@ class App:
     def move(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
-            self.camera.y -= self.speed * self.dt
+            self.camera.y -= self.movement_speed * self.dt
         if keys[pygame.K_a]:
-            self.camera.x -= self.speed * self.dt
+            self.camera.x -= self.movement_speed * self.dt
         if keys[pygame.K_s]:
-            self.camera.y += self.speed * self.dt
+            self.camera.y += self.movement_speed * self.dt
         if keys[pygame.K_d]:
-            self.camera.x += self.speed * self.dt
+            self.camera.x += self.movement_speed * self.dt
 
     def init_screen(self):
         if self.using_gpu:
@@ -199,6 +199,7 @@ class App:
         self.cloudRadius = body["cloudRadius"]
         self.planetPos = body["bodyPos"] - cam_pos
         self.lightDirection = body["lightDirection"]
+        self.isStar = body.get("isStar", False)
         self.has_changed_planet = True if self.latest_planet != body_name else False
         self.latest_planet = body_name
         self.planet_id = list(BODIES.keys()).index(body_name)

@@ -6,7 +6,8 @@ BODIES = {
         "bodyRadius": 1000,
         "cloudRadius": 1050,
         "bodyPos": Vector2(16410, 5917),
-        "lightDirection": [0.0, 0.0, 0.0],
+        "lightDirection": [0.3, 0.6, -1.0],
+        "isStar":True
     },
     "Albasee": {
         "bodyRadius": 500,  # pixels

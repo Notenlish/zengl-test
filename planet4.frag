@@ -15,6 +15,9 @@ out vec4 fragColor;
 bool shouldPixellize = false;
 bool shouldDither = true;
 
+vec3 cloudColor = vec3(1.0);
+vec3 lightColor = vec3(1.0);
+
 float PI = 3.1415926535897932384626433832795;
 vec2 light_origin = vec2(0.7, 0.5);
 float pixelSize = 8.0;
@@ -107,80 +110,62 @@ vec3 normal_sphere(vec2 uv_remap, float dis) {  // NOW ABSOLUTLY USELESS, KKEP F
 }
 */
 
-vec3 lighting(vec2 texture_uv, vec3 normal ) {
-    vec3 lightColor = vec3(1.0);
+vec2 LightandDither(vec3 normal, vec2 texture_uv) {
     float ringcount = 0.2001; // 1/ringcount
     float graincount = 128.0; // really its just totalGrainsInGrid
     float edge = 0.05; // must be less than 1/ringcount
 
     float fbm1 = fbm(texture_uv);
-    // maybe move time*time_speed to py and send as uniform?
     float fbm_val = fbm(texture_uv * size + fbm1 + vec2(time*time_speed, 0.0)) * 0.3;
-
-    vec3 NotfragColor = texture(planetTexture, texture_uv).bgr * lightColor; //lightColor is a uniform vec3
-    float ls = max(dot(normal, -normalize(movedLightDirection)), 0.04); // luminosity
     
+    float ls = max(dot(normal, -normalize(movedLightDirection)), 0.04); // luminosity
     ls -= fbm_val;  // apply fbm
+    
     float dithered_ls = ls;
     if (mod(ls, ringcount) >= edge && ls < 0.899) {
         if ((mod(texture_uv.x*graincount, 2.0) < 1.0 && mod(texture_uv.y*graincount, 2.0) < 1.0) ||
             (mod(texture_uv.x*graincount, 2.0) > 1.0 && mod(texture_uv.y*graincount, 2.0) > 1.0)) {
-            dithered_ls += 0.1001;
+            dithered_ls += 0.1001;  // dither
         }
     }
 
-    float cloud_val = cloud(texture_uv);
-    float isCloud = step(cloud_val, 0.35);
-    vec3 cloudColor = vec3(1.0);
+    return vec2(ls, dithered_ls);
+}
 
-    vec3 dithered_shadow_mul = vec3(1.0 * max(dithered_ls - mod(dithered_ls, 0.1001), 0.04));
+vec3 cloudFinal(float ls, vec2 texture_uv) {
+    // ld.x = ls
+    // ld.y = dithered_ls
+
     vec3 nodither_shadow_mul = vec3(1.0 * max(ls - mod(ls, 0.1001), 0.04));
 
-    vec3 planet_result = vec3(1.0 - isCloud) * vec3(1.5) * NotfragColor * dithered_shadow_mul;
-    vec3 cloud_result = cloudColor * isCloud * nodither_shadow_mul;
+    vec3 NotfragColor = texture(planetTexture, texture_uv).bgr * lightColor;
+
+    vec3 cloud_result = cloudColor * nodither_shadow_mul;
 
     vec3 result;
-    if (!isStar) {  // should do lighting
-        result =  planet_result + cloud_result; //lightDirection is also a uniform
+    if (!isStar) {  // if planet(has shadows)
+        result =  cloud_result + vec3(0.1) * NotfragColor; //lightDirection is also a uniform
     }
     else {
-        result = NotfragColor; 
+        result = NotfragColor;  // star, no need for lighting
     }
     return result;
 }
 
-vec3 lighting2(vec2 texture_uv, vec3 normal) {
-    vec3 lightColor = vec3(1.0);
-    float ringcount = 0.2001; // 1/ringcount
-    float graincount = 128.0; // really its just totalGrainsInGrid
-    float edge = 0.05; // must be less than 1/ringcount
+vec3 planetFinal(float dithered_ls, vec2 texture_uv) {
+    vec3 NotfragColor = texture(planetTexture, texture_uv).bgr * lightColor;
+    vec3 dithered_shadow_mul = vec3(1.0 * max(dithered_ls - mod(dithered_ls, 0.1001), 0.04));
 
-    float fbm1 = fbm(texture_uv);
-    // maybe move time*time_speed to py and send as uniform?
-    float fbm_val = fbm(texture_uv * size + fbm1 + vec2(time*time_speed, 0.0)) * 0.3;
+    vec3 planet_result = vec3(1.5) * NotfragColor * dithered_shadow_mul;
 
-    float ls = max(dot(normal, -normalize(movedLightDirection)), 0.04); // luminosity
-    ls -= fbm_val;
-    
-    // dithering
-    if (shouldDither && mod(ls, ringcount) >= edge && ls < 0.899) {
-        if ((mod(texture_uv.x*graincount, 2.0) < 1.0 && mod(texture_uv.y*graincount, 2.0) < 1.0) ||
-            (mod(texture_uv.x*graincount, 2.0) > 1.0 && mod(texture_uv.y*graincount, 2.0) > 1.0)) {
-            ls += 0.1001;
-        }
+    vec3 result;
+    if (!isStar) {  // should do lighting
+        result =  planet_result; //lightDirection is also a uniform
     }
-
-    vec3 col;
-    if (ls >= 0.9) {
-        col = palette[1].rgb;
-    } else if (ls >= 0.7) {
-        col = palette[2].rgb;
-    } else {
-        // make it not complain
-        texture(planetTexture, vec2(0.0,0.0));
-        col = palette[3].rgb;
+    else {
+        result = NotfragColor;
     }
-    return col;
+    return result;
 }
 
 void main() {
@@ -188,8 +173,8 @@ void main() {
 
     float dis = distance(planetCenter, pos);
     
-    if (dis < bodyRadius) {
-        vec2 uv_remap = (pos - planetCenter)/(bodyRadius*2.0) + 0.5; // just replace bodyRadius with cloudRadius
+    if (dis<=cloudRadius) {
+        vec2 uv_remap = (pos - planetCenter)/(cloudRadius*2.0) + 0.5; // just replace bodyRadius with cloudRadius
         vec3 normal = texture(planetNormalTexture, uv_remap * vec2(1, -1)).bgr; // * 2.0 - 1.0;
 
         vec2 texture_uv = texture(planetUVTexture, uv_remap * vec2(1, -1)).bg;
@@ -197,20 +182,35 @@ void main() {
         // for this to work you need to use "wrap_x":"repeat" in the texture settings
         texture_uv.x += planetOffset;
 
-        if (shouldPixellize == true) {
+        if (shouldPixellize) {
             texture_uv = pixellize(texture_uv);
         }
-        
-        vec3 col = lighting(texture_uv, normal);
-        
-        fragColor = vec4(col, 1.0);
-        
+
+        float cloud_val = cloud(texture_uv);
+        float isCloud = step(cloud_val, 0.35);
+
+        vec2 ld = LightandDither(normal, texture_uv); // ls + dithered_ls
+        vec4 final;
+
+        if (isCloud == 1.0) {
+            final = vec4(cloudFinal(ld.x, texture_uv), 1.0);
+        }
+        else if (dis <= bodyRadius) {
+            uv_remap = (pos - planetCenter)/(bodyRadius*2.0) + 0.5;
+            normal = texture(planetNormalTexture, uv_remap * vec2(1, -1)).bgr; // * 2.0 - 1.0;
+            texture_uv = texture(planetUVTexture, uv_remap * vec2(1, -1)).bg;
+            
+            texture_uv.x += planetOffset;
+            if (shouldPixellize) {
+                texture_uv = pixellize(texture_uv);
+            }
+            
+            final = vec4(planetFinal(ld.y, texture_uv), 1.0);
+        } else {
+            final = texture(Texture, fragCoord).bgra;
+        }
+        fragColor = final;
     } else {
-        vec3 c1 = texture(planetNormalTexture, vec2(0.0,0.0)).bgr;
-        vec3 c2 = texture(planetUVTexture, vec2(0.0,0.0)).bgr;
-        vec3 c3 = texture(planetTexture, vec2(0.0,0.0)).bgr;
-        vec3 c4 = texture(Texture, fragCoord).bgr;
-        fragColor = vec4(c4 * vec3(0.99) + (c2+c1+c3)*vec3(0.01), 1.0);
+        fragColor = texture(Texture, fragCoord).bgra;
     }
-    
 }
