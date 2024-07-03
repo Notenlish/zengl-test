@@ -13,7 +13,7 @@ from planets import BODIES
 
 import importlib
 
-UNCAPPED = False
+UNCAPPED = True
 
 
 class App:
@@ -22,11 +22,12 @@ class App:
 
         pygame.init()
         self.using_gpu = True
-        self.screen_size = (1280, 720)
+        self.screen_size = (720, 405)
         try:
-            zengl_extras.init(gpu=False)
-        except:
             zengl_extras.init(gpu=True)
+        except:
+            zengl_extras.init(gpu=False)
+            
         self.pg_surf = self.init_screen()
         self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
 
@@ -51,6 +52,7 @@ class App:
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.time_elapsed = 0
+        self.past_fps = []
         self.screenshot = pygame.image.load("screenshot.png").convert()
 
         self.shaders = {"vert": "default.vert", "frag": "planet4.frag"}
@@ -131,7 +133,7 @@ class App:
             display_kwargs = {
                 "size": self.screen_size,
                 "flags": pygame.OPENGL | pygame.DOUBLEBUF,
-                "vsync": True,
+                "vsync": not UNCAPPED,
             }
             # pygame needs to use RGBA mode otherwise it wont work with opengl
             try:
@@ -236,8 +238,16 @@ class App:
             self.dt = self.clock.tick(self.max_fps) / 1000
             self.fps = self.clock.get_fps()
             fps = self.clock.get_fps()
+            self.past_fps.append(fps)
+            avg = 0
+            for fps in self.past_fps:
+                avg += fps
+            avg /= len(self.past_fps)
+            if len(self.past_fps) > 60:
+                self.past_fps.pop(0)
+            
             pygame.display.set_caption(
-                f"Shaders in Browser Test | FPS:{fps:.0f} DT:{self.dt}"
+                f"Shaders in Browser Test | Avg FPS:{avg:.0f} FPS:{fps:.0f} DT:{self.dt}"
             )
             self.time_elapsed += self.dt
             self.since_shader_check += self.dt

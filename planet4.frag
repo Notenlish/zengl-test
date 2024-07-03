@@ -144,7 +144,7 @@ vec3 cloudFinal(float ls, vec2 texture_uv) {
 
     vec3 result;
     if (!isStar) {  // if planet(has shadows)
-        result =  cloud_result + vec3(0.1) * NotfragColor; //lightDirection is also a uniform
+        result =  cloud_result; //+ vec3(0.1) * NotfragColor; //lightDirection is also a uniform
     }
     else {
         result = NotfragColor;  // star, no need for lighting
@@ -154,7 +154,7 @@ vec3 cloudFinal(float ls, vec2 texture_uv) {
 
 vec3 planetFinal(float dithered_ls, vec2 texture_uv) {
     vec3 NotfragColor = texture(planetTexture, texture_uv).bgr * lightColor;
-    vec3 dithered_shadow_mul = vec3(1.0 * max(dithered_ls - mod(dithered_ls, 0.1001), 0.04));
+    vec3 dithered_shadow_mul = vec3(max(dithered_ls - mod(dithered_ls, 0.1001), 0.04));
 
     vec3 planet_result = vec3(1.5) * NotfragColor * dithered_shadow_mul;
 
@@ -196,6 +196,8 @@ void main() {
             final = vec4(cloudFinal(ld.x, texture_uv), 1.0);
         }
         else if (dis <= bodyRadius) {
+            // body rad and cloudrad is so similiar that no need to recalculate uvs
+            /*
             uv_remap = (pos - planetCenter)/(bodyRadius*2.0) + 0.5;
             normal = texture(planetNormalTexture, uv_remap * vec2(1, -1)).bgr; // * 2.0 - 1.0;
             texture_uv = texture(planetUVTexture, uv_remap * vec2(1, -1)).bg;
@@ -204,7 +206,7 @@ void main() {
             if (shouldPixellize) {
                 texture_uv = pixellize(texture_uv);
             }
-            
+            */
             final = vec4(planetFinal(ld.y, texture_uv), 1.0);
         } else {
             final = texture(Texture, fragCoord).bgra;

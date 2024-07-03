@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Dict, Literal
+from typing import TYPE_CHECKING, Dict, Literal, Tuple
 
 if TYPE_CHECKING:
     from main import App
@@ -112,7 +112,7 @@ class ShaderPipeline:
     @staticmethod
     def pack_uniforms(
         uniforms_map: Dict[any, any]
-    ) -> tuple[Dict[any, any], int, Dict[any, any]]:
+    ) -> Tuple[Dict[any, any], int, Dict[any, any]]:
         uniforms = {}
         layout = ""
         offset = 0

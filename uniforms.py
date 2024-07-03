@@ -19,7 +19,7 @@ for v in _palette:
     rgb = webcolors.hex_to_rgb(v if v[0]=="#" else f"#{v}")
     color = [rgb.red / 255, rgb.green / 255, rgb.blue / 255, 1.0]  # rgba
     palette.append(color)
-print(palette)
+
 
 def set_speeds(self):
     self.time_speed = 1.0
