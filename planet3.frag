@@ -198,7 +198,7 @@ void main() {
 
         vec3 col = lighting(texture_uv, normal); //+ vec3(1.0) * isCloud;
 
-        fragColor = vec4(col.rgb, 1.0);
+        fragColor = vec4(col, 1.0);
         
     } else {
         vec3 c1 = texture(planetNormalTexture, vec2(0.0,0.0)).bgr;
