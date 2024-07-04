@@ -1,8 +1,8 @@
 from typing import TYPE_CHECKING, Dict, Literal, Tuple
+import pygame
 
 if TYPE_CHECKING:
     from main import App
-    import pygame
 
 
 def read_file(filename):
@@ -30,9 +30,9 @@ class ShaderPipeline:
         self.uniform_buffer = self.ctx.buffer(size=self.ufs_size)
         self.vert_shader_path = vert_shader_path
         self.frag_shader_path = frag_shader_path
-        self.image_out = self.ctx.image((320, 240), "rgba8unorm", samples=1)
+        self.image_out = self.ctx.image((450, 300), "rgba8unorm", samples=1)
         self.image_out.clear_value = (0.4, 0.4, 0.4, 1.0)
-        self.depth_out = self.ctx.image((320, 240), "depth24plus", samples=1)
+        self.depth_out = self.ctx.image((450, 300), "depth24plus", samples=1)
         self.construct_pipeline()
 
     def setup_images(self):
@@ -54,7 +54,7 @@ class ShaderPipeline:
         for _d in [constants, self.ufs_includes]:
             for k, v in _d.items():
                 _includes[k] = v
-        # print(resources)
+        print(resources)
 
         self.pipeline = self.ctx.pipeline(
             includes=_includes,
@@ -64,7 +64,7 @@ class ShaderPipeline:
             resources=resources,
             framebuffer=[self.image_out, self.depth_out],
             topology="triangle_strip",
-            viewport=(0, 0, 320, 240),
+            viewport=(0, 0, 450, 300),
             vertex_count=4,
             blend={
                 "enable": True,
@@ -103,8 +103,7 @@ class ShaderPipeline:
         self.update_uniforms()
 
         for tex_name, surf in surfaces.items():
-            screen_buffer = surf.get_view("0").raw
-            self.images[tex_name].write(screen_buffer)
+            self.images[tex_name].write(data=pygame.image.tostring(surf, 'RGBA'))
 
         self.pipeline.render()
 
@@ -197,9 +196,9 @@ class ShaderPipelinePostProc:
         self.uniform_buffer = self.ctx.buffer(size=self.ufs_size)
         self.vert_shader_path = vert_shader_path
         self.frag_shader_path = frag_shader_path
-        self.image_out = self.ctx.image((1280, 680), "rgba8unorm", samples=1)
-        self.image_out.clear_value = (0.4, 0.4, 0.4, 1.0)
-        self.depth_out = self.ctx.image((1280, 680), "depth24plus", samples=1)
+        self.image_out = self.ctx.image((1208, 680), "rgba8unorm", samples=1)
+        self.image_out.clear_value = (0.4, 0.9, 0.4, 1.0)
+        self.depth_out = self.ctx.image((1208, 680), "depth24plus", samples=1)
         self.construct_pipeline()
 
     def setup_images(self):
@@ -214,14 +213,14 @@ class ShaderPipelinePostProc:
         vec2_screen_size_str = (
             f"vec2({self.app.screen_size[0]}.0, {self.app.screen_size[1]}.0)"
         )
-        constants = {"constants": f"const vec2 iResolution = {vec2_screen_size_str};"}
+        constants = {} #{"constants": f"const vec2 iResolution = {vec2_screen_size_str};"}
 
         _includes = {}
         for _d in [constants, self.ufs_includes]:
             for k, v in _d.items():
                 _includes[k] = v
                 
-        # (resources)
+        print(resources)
 
         self.pipeline = self.ctx.pipeline(
             includes=_includes,
