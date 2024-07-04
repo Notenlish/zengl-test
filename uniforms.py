@@ -3,6 +3,12 @@ import math
 from copy import deepcopy
 import webcolors
 
+from typing import TYPE_CHECKING
+
+
+if TYPE_CHECKING:
+    from renderer import Renderer
+
 _palette = """000000
 21283f
 38526e
@@ -19,7 +25,7 @@ for v in _palette:
     rgb = webcolors.hex_to_rgb(v if v[0]=="#" else f"#{v}")
     color = [rgb.red / 255, rgb.green / 255, rgb.blue / 255, 1.0]  # rgba
     palette.append(color)
-print(palette)
+# print(palette)
 
 def set_speeds(self):
     self.time_speed = 1.0
@@ -34,14 +40,14 @@ def get_palette_buf():
     return buffer
 
 
-def get_light_moved(self):
+def get_light_moved(self, renderer: "Renderer"):
     startLightRot = 0.0
-    rot = startLightRot + (self.time_elapsed * self.lightSpeed)  # between 0 and 2pi
+    rot = startLightRot + (self.time_elapsed * renderer.light_speed)  # between 0 and 2pi
     rot %= 2.0 * math.pi
     offset = (math.sin(rot) * 2.0, math.cos(rot) * 2.0)
 
-    newLightDirection = deepcopy(self.lightDirection)
-    if self.shouldMoveLight:
+    newLightDirection = deepcopy(renderer.lightDirection)
+    if renderer.shouldMoveLight:
         newLightDirection[0] += offset[0]
         newLightDirection[2] += offset[1]
 
@@ -52,8 +58,8 @@ def get_planet_offset(self):
     # moves the planet(texture uv)
     return self.time_elapsed * self.time_speed * self.planetRotationSpeed
 
-
-def get_uniforms(self):
+# self = app
+def get_uniforms(self, renderer: "Renderer"):
     set_speeds(self)
     uniforms_map = {
         "time": {
@@ -61,15 +67,15 @@ def get_uniforms(self):
             "glsl_type": "float",
         },
         "planetCenter": {
-            "value": lambda: struct.pack("ff", *self.planetPos),
+            "value": lambda: struct.pack("ff", *renderer.planetPos),
             "glsl_type": "vec2",
         },
         "bodyRadius": {
-            "value": lambda: struct.pack("f", self.bodyRadius),
+            "value": lambda: struct.pack("f", renderer.bodyRadius),
             "glsl_type": "float",
         },
         "cloudRadius": {
-            "value": lambda: struct.pack("f", self.cloudRadius),
+            "value": lambda: struct.pack("f", renderer.cloudRadius),
             "glsl_type": "float",
         },
         "screenResolution": {
@@ -87,11 +93,11 @@ def get_uniforms(self):
             "glsl_type": "vec2",
         },
         "lightDirection": {
-            "value": lambda: struct.pack("fff", *self.lightDirection),
+            "value": lambda: struct.pack("fff", *renderer.lightDirection),
             "glsl_type": "vec3",
         },
         "movedLightDirection": {
-            "value": lambda: struct.pack("fff", *get_light_moved(self)),
+            "value": lambda: struct.pack("fff", *get_light_moved(self, renderer)),
             "glsl_type": "vec3",
         },
         "paletteSize": {
@@ -112,7 +118,7 @@ def get_uniforms(self):
             "glsl_type": "float",
         },
         "isStar": {
-            "value": lambda: struct.pack("?", self.isStar),
+            "value": lambda: struct.pack("?", renderer.isStar),
             "glsl_type":"bool"
         }
     }

@@ -54,7 +54,7 @@ class ShaderPipeline:
         for _d in [constants, self.ufs_includes]:
             for k, v in _d.items():
                 _includes[k] = v
-        print(resources)
+        # print(resources)
 
         self.pipeline = self.ctx.pipeline(
             includes=_includes,
@@ -221,7 +221,7 @@ class ShaderPipelinePostProc:
             for k, v in _d.items():
                 _includes[k] = v
                 
-        print(resources)
+        # (resources)
 
         self.pipeline = self.ctx.pipeline(
             includes=_includes,
