@@ -20,7 +20,7 @@ import webcolors
 import os
 import asyncio
 
-from shader_pipeline import ShaderPipeline
+import shader_pipeline
 
 SHADER_TESTING = True
 

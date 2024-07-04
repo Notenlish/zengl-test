@@ -43,7 +43,7 @@ class Renderer:
             },
             "post_process": {
                 "vert": "shaders/default.vert",
-                "frag": "shaders/underwater.frag",
+                "frag": "shaders/pixellize.frag",
             },
         }
 

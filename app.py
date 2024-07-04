@@ -63,7 +63,7 @@ class App:
             display_kwargs = {
                 "size": self.screen_size,
                 "flags": pygame.OPENGL | pygame.DOUBLEBUF,
-                "vsync": False,
+                "vsync": True,
             }
             
             # pygame needs to use RGBA mode otherwise it wont work with opengl
