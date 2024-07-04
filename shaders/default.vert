@@ -14,5 +14,5 @@ out vec2 fragCoord;
 
 void main() {
     fragCoord = vertex[gl_VertexID] * vec2(0.5, -0.5) + 0.5;
-    gl_Position = vec4(vertex[gl_VertexID], 0.0, 1.0);
+    gl_Position = vec4(vertex[gl_VertexID], 0.5, 1.0);
 }
