@@ -183,3 +183,11 @@ class Renderer:
         self.has_changed_planet = True if self.latest_planet != body_name else False
         self.latest_planet = body_name
         self.planet_id = list(BODIES.keys()).index(body_name)
+
+    def reload_shaders(self):
+        self.screen_shader.reload_shaders()
+        self.post_process.reload_shaders()
+
+    def reload_uniforms(self):
+        self.load_uniforms()
+        self.update_uniforms()  # send to shader

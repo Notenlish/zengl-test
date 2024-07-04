@@ -106,9 +106,8 @@ class App:
                     self.planetPos = pygame.mouse.get_pos()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_F1:
-                        self.screen_shader.reload_shaders()
-                        self.load_uniforms()
-                        self.update_uniforms()  # send to shader
+                        self.renderer.reload_shaders()
+                        self.renderer.reload_uniforms()
                     if event.key == pygame.K_F2:
                         self.renderer.change_planet()
 
