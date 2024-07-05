@@ -14,6 +14,7 @@ from renderer import Renderer
 import importlib
 
 UNCAPPED = False
+MODE = "a"
 
 
 class App:
@@ -27,8 +28,7 @@ class App:
             print("GPU=True")
         except:
             zengl_extras.init(gpu=False, opengl_core=False)
-            
-            
+        
         self.pg_surf = self.init_screen()
         self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
 
@@ -43,6 +43,9 @@ class App:
         self.movement_speed = 500
 
         self.since_shader_check = 0
+
+        if MODE == "water":
+            self.ss = pygame.transform.scale(pygame.image.load("ss.png").convert_alpha(), self.screen_size)
 
         self.renderer = Renderer(self)
         self.renderer.setup()
@@ -95,6 +98,9 @@ class App:
 
         surf = self.font.render(f"{self.camera.x}, {self.camera.y}", True, "white")
         self.pg_surf.blit(surf, (0, 0))
+        
+        if MODE == "water":
+            self.pg_surf.blit(self.ss, (0,0))
 
     async def run(self):
         while True:

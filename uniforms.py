@@ -120,6 +120,10 @@ def get_uniforms(self, renderer: "Renderer"):
         "isStar": {
             "value": lambda: struct.pack("?", renderer.isStar),
             "glsl_type":"bool"
+        },
+        "cameraPos": {
+            "value": lambda: struct.pack("ff", self.camera.x, self.camera.y),
+            "glsl_type":"vec2"
         }
     }
     return uniforms_map
