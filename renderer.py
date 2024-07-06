@@ -39,7 +39,7 @@ class Renderer:
         self.shaders = {
             "rendering": {
                 "vert": "shaders/default.vert",
-                "frag": "shaders/stars.frag",
+                "frag": "shaders/water.frag",
             },
             "post_process": {
                 "vert": "shaders/default.vert",

@@ -11,24 +11,20 @@ uniform sampler2D planetUVTexture;
 in vec2 fragCoord;
 out vec4 fragColor;
 
-
 vec3 stars() {
     // call this only for pure black backgrounds(space)
 
-    // camera_pos will be an uniform
-    vec2 cam_pos = cameraPos / vec2(1000000.0);
-    vec2 uv = fragCoord / vec2(2.0) + vec2(1.0, 0.5) + cam_pos;
-    uv = vec2(mod(uv.x, 1.0), mod(uv.y, 1.0));
-    
-    // dont use those hash13 things, it doesnt work, just make a really simple algorithm that colors it white if it fullfills an condition that is seemingly random
-    // wait isnt that what perlin noise / hash13 is
-    // bruh    
+    // you know what
+    // I think we should draw the stars from the cpu
+    // thats it, im gone
+    return vec3(0.0);
 }
 
 void main() {
     
-    vec3 final = stars();
+    // vec3 final = stars();
+    vec3 no_complain = texture(Texture, vec2(0.0,0.0)).rgb + texture(planetTexture, vec2(0.0,0.0)).rgb + texture(planetNormalTexture, vec2(0.0,0.0)).rgb + texture(planetUVTexture, vec2(0.0,0.0)).rgb;
     
 
-    fragColor = vec4(final, 1.0);
+    fragColor = vec4(no_complain, 1.0);
 }

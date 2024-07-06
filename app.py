@@ -14,7 +14,7 @@ from renderer import Renderer
 import importlib
 
 UNCAPPED = False
-MODE = "a"
+MODE = "water"
 
 
 class App:
