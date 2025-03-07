@@ -173,9 +173,7 @@ class ShaderPipeline:
             """
         buffer_size = 16 + offset
         return uniforms, buffer_size, {"uniforms": includes.strip()}
-        
-        
-        
+
 
 
 class ShaderPipelinePostProc:

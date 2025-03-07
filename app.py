@@ -19,7 +19,6 @@ MODE = "water"
 
 class App:
     def __init__(self) -> None:
-
         pygame.init()
         self.using_gpu = True
         self.screen_size = (640, 480)
@@ -28,24 +27,26 @@ class App:
             print("GPU=True")
         except:
             zengl_extras.init(gpu=False, opengl_core=False)
-        
+
         self.pg_surf = self.init_screen()
         self.font = pygame.font.Font("renogare/Renogare-Regular.otf", 20)
 
         self.max_fps = 60 if not UNCAPPED else 1000
         self.camera = Camera(0, 0)
-        
+
         self.clock = pygame.time.Clock()
         self.dt = 0
         self.time_elapsed = 0
         self.time_speed = 1.0
-        
+
         self.movement_speed = 500
 
         self.since_shader_check = 0
 
         if MODE == "water":
-            self.ss = pygame.transform.scale(pygame.image.load("ss.png").convert_alpha(), self.screen_size)
+            self.ss = pygame.transform.scale(
+                pygame.image.load("ss.png").convert_alpha(), self.screen_size
+            )
 
         self.renderer = Renderer(self)
         self.renderer.setup()
@@ -62,13 +63,14 @@ class App:
             self.camera.x += self.movement_speed * self.dt
 
     def init_screen(self):
+        print("initialisng screen.")
         if self.using_gpu:
             display_kwargs = {
                 "size": self.screen_size,
                 "flags": pygame.OPENGL | pygame.DOUBLEBUF,
                 "vsync": True,
             }
-            
+
             # pygame needs to use RGBA mode otherwise it wont work with opengl
             try:
                 return pygame.display.set_mode(**display_kwargs).convert_alpha()
@@ -92,15 +94,14 @@ class App:
 
         self.renderer.render()
 
-        
     def pg_draw(self):
         self.pg_surf.fill("#222222")
 
         surf = self.font.render(f"{self.camera.x}, {self.camera.y}", True, "white")
         self.pg_surf.blit(surf, (0, 0))
-        
+
         if MODE == "water":
-            self.pg_surf.blit(self.ss, (0,0))
+            self.pg_surf.blit(self.ss, (0, 0))
 
     async def run(self):
         while True:

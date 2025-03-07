@@ -47,6 +47,7 @@ class Renderer:
             },
         }
 
+        print("context creating")
         self.ctx = zengl.context()
         self.app.ctx = self.ctx
 
